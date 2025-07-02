@@ -1,0 +1,43 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^4.3.2",
+        "autoprefixer": "^10.4.20",
+        "axios": "^1.7.4",
+        "daisyui": "^4.12.13",
+        "laravel-vite-plugin": "^1.0",
+        "postcss": "^8.4.47",
+        "tailwindcss": "^3.4.13",
+        "vite": "^5.0"
+    },
+    "dependencies": {
+        "@emotion/react": "^11.13.3",
+        "@emotion/styled": "^11.13.0",
+        "@inertiajs/inertia": "^0.11.1",
+        "@inertiajs/inertia-react": "^0.8.1",
+        "@inertiajs/react": "^1.2.0",
+        "@mui/icons-material": "^6.1.4",
+        "@mui/material": "^6.1.4",
+        "@mui/styled-engine-sc": "^6.1.4",
+        "chart.js": "^4.4.5",
+        "datatables.net": "^2.1.8",
+        "datatables.net-buttons": "^3.1.2",
+        "datatables.net-dt": "^2.1.8",
+        "datatables.net-responsive": "^3.0.3",
+        "datatables.net-select": "^2.1.0",
+        "flowbite": "^2.5.2",
+        "flowbite-react": "^0.10.2",
+        "jquery": "^3.7.1",
+        "react": "^18.3.1",
+        "react-chartjs-2": "^5.2.0",
+        "react-dom": "^18.3.1",
+        "react-icons": "^5.3.0",
+        "styled-components": "^6.1.13",
+        "sweetalert2": "^11.6.13"
+    }
+}
