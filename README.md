@@ -1,66 +1,236 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Hospital-BPJS Billing System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A comprehensive billing management system for hospitals and BPJS (Indonesian health insurance) administration. This system facilitates the creation, management, and approval of medical invoices between hospitals and BPJS.
 
-## About Laravel
+## 🏥 Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### For Hospital Administrators (Admin RS)
+- **Patient Management**: Register and manage patient information
+- **Medical Records**: Create and maintain patient medical records
+- **Master Data Management**: 
+  - Categories for medical services
+  - Medical services with pricing
+  - Medicine inventory management
+  - Medical actions/procedures
+- **Invoice Creation**: Create invoices with detailed items or category-based billing
+- **Invoice Submission**: Submit invoices to BPJS for approval
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### For BPJS Administrators (Admin BPJS)
+- **Invoice Review**: Review submitted invoices from hospitals
+- **Approval/Rejection**: Approve or reject invoices with notes
+- **Invoice Editing**: Edit invoices during review process
+- **Monitoring**: Track all invoice statuses and amounts
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Shared Features
+- **Dashboard**: Overview of system statistics and recent activities
+- **Reports**: Comprehensive reporting for invoices and patients
+- **Invoice Printing**: Professional invoice printing with hospital and BPJS logos
+- **User Management**: Profile and password management
+- **Role-based Access**: Different permissions for hospital and BPJS staff
 
-## Learning Laravel
+## 🚀 Technology Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Backend**: Laravel 11 (PHP)
+- **Frontend**: React 18 with Inertia.js
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Notifications**: SweetAlert2
+- **PDF Generation**: DomPDF
+- **Database**: MySQL/PostgreSQL
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 📋 Prerequisites
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP 8.1 or higher
+- Composer
+- Node.js 18+ and NPM
+- MySQL or PostgreSQL database
 
-## Laravel Sponsors
+## 🛠 Installation
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd hospital-bpjs-billing
+   ```
 
-### Premium Partners
+2. **Install PHP dependencies**
+   ```bash
+   composer install
+   ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+3. **Install JavaScript dependencies**
+   ```bash
+   npm install
+   ```
 
-## Contributing
+4. **Environment setup**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Update `.env` with your database credentials:
+   ```
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=hospital_bpjs
+   DB_USERNAME=your_username
+   DB_PASSWORD=your_password
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+5. **Generate application key**
+   ```bash
+   php artisan key:generate
+   ```
 
-## Code of Conduct
+6. **Run migrations**
+   ```bash
+   php artisan migrate
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+7. **Seed the database**
+   ```bash
+   php artisan db:seed
+   ```
 
-## Security Vulnerabilities
+8. **Build assets**
+   ```bash
+   npm run build
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+9. **Start the development server**
+   ```bash
+   php artisan serve
+   ```
 
-## License
+## 👥 Default Users
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+After seeding, you can login with:
+
+**Hospital Administrator:**
+- Username: `admin_rs`
+- Password: `password`
+
+**BPJS Administrator:**
+- Username: `admin_bpjs`
+- Password: `password`
+
+## 📊 Database Structure
+
+### Core Tables
+- `users` - System users (Hospital and BPJS admins)
+- `patients` - Patient information (KPJ, NIK, personal data)
+- `medical_records` - Medical treatment records
+- `categories` - Service categories
+- `services` - Medical services with pricing
+- `medicines` - Medicine inventory
+- `actions` - Medical procedures/actions
+
+### Billing Tables
+- `invoices` - Main invoice records with JKK dates
+- `invoice_details` - Detailed invoice items (services, medicines, actions)
+- `invoice_categories` - Category-based billing
+
+## 🔐 User Roles
+
+### Admin Rumah Sakit (Hospital Admin)
+- Manage patients and medical records
+- Create and edit invoices
+- Manage master data (categories, services, medicines, actions)
+- Submit invoices to BPJS
+- Generate reports
+
+### Admin BPJS
+- Review submitted invoices
+- Approve or reject invoices
+- Edit invoices during review
+- Generate invoice reports
+- Monitor payment statuses
+
+## 📝 Invoice Workflow
+
+1. **Draft**: Hospital creates invoice (can edit/delete)
+2. **Submitted**: Hospital submits to BPJS (cannot edit)
+3. **Under Review**: BPJS reviews invoice (can edit)
+4. **Approved**: BPJS approves invoice
+5. **Rejected**: BPJS rejects with notes (returns to hospital)
+
+## 🎨 Key Features Explained
+
+### JKK Date (Jaminan Kecelakaan Kerja)
+- Required for all invoices
+- Represents work accident insurance date
+- Critical for BPJS claim processing
+
+### Flexible Invoice Creation
+- **Item-based**: Add individual services, medicines, and actions
+- **Category-based**: Bulk billing by service categories
+- **Mixed**: Combine both approaches in single invoice
+
+### Comprehensive Reporting
+- Invoice analytics with status breakdowns
+- Patient demographics and treatment history
+- Revenue tracking and trends
+- Export capabilities (CSV)
+
+## 📱 Responsive Design
+
+The system is fully responsive and works on:
+- Desktop computers
+- Tablets
+- Mobile phones
+
+## 🔧 Development
+
+### Running in development mode
+```bash
+# Terminal 1: PHP server
+php artisan serve
+
+# Terminal 2: Asset compilation
+npm run dev
+```
+
+### Building for production
+```bash
+npm run build
+php artisan optimize
+```
+
+## 📄 Invoice Printing
+
+The system generates professional PDF invoices featuring:
+- Hospital and BPJS logos
+- Complete patient information
+- Detailed billing breakdown
+- JKK date and approval status
+- Digital signatures support
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## 📞 Support
+
+For technical support or questions about the Hospital-BPJS Billing System, please contact the development team.
+
+## 📜 License
+
+This project is proprietary software developed for hospital-BPJS billing management.
+
+---
+
+**System Requirements:**
+- Minimum PHP 8.1
+- MySQL 8.0+ or PostgreSQL 13+
+- 2GB RAM minimum
+- SSL certificate recommended for production
+
+**Browser Support:**
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+

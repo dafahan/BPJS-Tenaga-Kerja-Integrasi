@@ -2,63 +2,90 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Patient;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class PatientController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $patients = Patient::with('medicalRecords')
+            ->withCount('medicalRecords')
+            ->orderBy('nama_pasien')
+            ->paginate(20);
+
+        return Inertia::render('Patients', [
+            'patients' => $patients
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'no_kpj' => 'required|string|max:50|unique:patients',
+            'nama_pasien' => 'required|string|max:255',
+            'nik' => 'required|string|max:16|unique:patients',
+            'alamat' => 'required|string',
+            'telepon' => 'nullable|string|max:20',
+            'tanggal_lahir' => 'required|date',
+            'jenis_kelamin' => 'required|in:L,P'
+        ]);
+
+        $patient = Patient::create($validated);
+
+        return response()->json([
+            'message' => 'Patient created successfully',
+            'patient' => $patient
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Patient $patient)
     {
-        //
+        $patient->load(['medicalRecords.invoices']);
+        
+        return response()->json($patient);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, Patient $patient)
     {
-        //
+        $validated = $request->validate([
+            'no_kpj' => 'required|string|max:50|unique:patients,no_kpj,' . $patient->id,
+            'nama_pasien' => 'required|string|max:255',
+            'nik' => 'required|string|max:16|unique:patients,nik,' . $patient->id,
+            'alamat' => 'required|string',
+            'telepon' => 'nullable|string|max:20',
+            'tanggal_lahir' => 'required|date',
+            'jenis_kelamin' => 'required|in:L,P'
+        ]);
+
+        $patient->update($validated);
+
+        return response()->json([
+            'message' => 'Patient updated successfully',
+            'patient' => $patient
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Patient $patient)
     {
-        //
+        $patient->delete();
+
+        return response()->json([
+            'message' => 'Patient deleted successfully'
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function search(Request $request)
     {
-        //
+        $search = $request->get('q');
+        
+        $patients = Patient::where('nama_pasien', 'like', "%{$search}%")
+            ->orWhere('no_kpj', 'like', "%{$search}%")
+            ->orWhere('nik', 'like', "%{$search}%")
+            ->limit(10)
+            ->get();
+
+        return response()->json($patients);
     }
 }

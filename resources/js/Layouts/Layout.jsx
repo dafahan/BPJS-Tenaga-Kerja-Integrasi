@@ -5,23 +5,35 @@ import {
   FaUsers, FaUserMd, FaClipboardList, FaUserTie, FaHistory,
   FaChevronDown, FaChevronRight, FaDatabase, FaFileInvoiceDollar, 
   FaCogs, FaPills, FaStethoscope, FaHospital, FaMoneyBillWave,
-  FaFileAlt, FaPrint, FaCheckCircle, FaTimesCircle, FaEye
+  FaFileAlt, FaPrint, FaCheckCircle, FaTimesCircle, FaEye, FaPlus,
+  FaEdit, FaClock, FaChartLine
 } from 'react-icons/fa';
-import HospitalLogo from '@/assets/Logo_RSI.jpg'; 
-import BPJSLogo from '@/assets/Logo_BPJS.svg'; 
 
 const Layout = ({ children }) => {
   const { authenticatedUser } = usePage().props;
   const url = usePage().url;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState({}); // Track which menus are expanded
+  const [expandedMenus, setExpandedMenus] = useState({}); 
 
   const userRole = authenticatedUser?.role || 'user';
 
-  const isActive = (path) => {
-    if (path === '/dashboard') return url === '/dashboard';
-    return url === path || url.startsWith(`${path}/`) || url.startsWith(`${path}?`);
-  };
+const normalize = (s) => s.replace(/\/+$/, '');
+
+const isActive = (path) => {
+  // const hasQuery = path.includes('?');
+  const current = normalize(url);
+  const target = normalize(path);
+
+  if (target === '/dashboard' || target === '/') {
+    return current === '/dashboard' || current === '/' || current === '';
+  }
+
+  // if (hasQuery) {
+  //   return current === target;
+  // }
+
+  return current === target || current.startsWith(`${target}/`);
+};
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
@@ -36,9 +48,7 @@ const Layout = ({ children }) => {
 
   // Helper function to check if user has access to a menu item
   const hasAccess = (roles) => {
-    // If roles include '*', grant access to all users
     if (roles.includes('*')) return true;
-    // Otherwise, check if user has any of the required roles
     return roles.includes(userRole);
   };
 
@@ -60,7 +70,7 @@ const Layout = ({ children }) => {
         { name: 'Categories', path: '/categories', icon: <FaHospital />, roles: ['admin_rs'] },
         { name: 'Services', path: '/services', icon: <FaStethoscope />, roles: ['admin_rs'] },
         { name: 'Medicines', path: '/medicines', icon: <FaPills />, roles: ['admin_rs'] },
-        { name: 'Actions/Procedures', path: '/actions', icon: <FaTasks />, roles: ['admin_rs'] },
+        { name: 'Actions', path: '/actions', icon: <FaTasks />, roles: ['admin_rs'] },
       ]
     },
     {
@@ -70,65 +80,49 @@ const Layout = ({ children }) => {
       type: 'group',
       key: 'patient_management',
       children: [
-        { name: 'Patients', path: '/patients', icon: <FaUsers />, roles: ['admin_rs'] },
+        { name: 'All Patients', path: '/patients', icon: <FaUsers />, roles: ['admin_rs'] },
         { name: 'Medical Records', path: '/medical-records', icon: <FaClipboardList />, roles: ['admin_rs'] },
-        { name: 'New Medical Record', path: '/medical-records/create', icon: <FaFileAlt />, roles: ['admin_rs'] },
       ]
     },
     {
-      name: 'Billing & Invoice',
+      name: 'Invoice Management',
       icon: <FaFileInvoiceDollar />,
       roles: ['*'],
       type: 'group',
-      key: 'billing',
+      key: 'invoices',
       children: [
-        { name: 'Create Invoice', path: '/invoices/create', icon: <FaFileAlt />, roles: ['admin_rs'] },
-        { name: 'Draft Invoices', path: '/invoices/draft', icon: <FaFileAlt />, roles: ['admin_rs'] },
-        { name: 'Submitted Invoices', path: '/invoices/submitted', icon: <FaMoneyBillWave />, roles: ['*'] },
-        { name: 'Pending Approval', path: '/invoices/pending', icon: <FaEye />, roles: ['admin_bpjs'] },
-        { name: 'Approved Invoices', path: '/invoices/approved', icon: <FaCheckCircle />, roles: ['*'] },
-        { name: 'Rejected Invoices', path: '/invoices/rejected', icon: <FaTimesCircle />, roles: ['*'] },
+        // Admin RS specific
+        // { name: 'Create Invoice', path: '/invoices/create', icon: <FaPlus />, roles: ['admin_rs'] },
+        { name: 'Draft Invoices', path: '/invoices?status=draft', icon: <FaEdit />, roles: ['admin_rs'] },
+        
+        // Both roles
         { name: 'All Invoices', path: '/invoices', icon: <FaClipboardList />, roles: ['*'] },
+        { name: 'Submitted', path: '/invoices?status=submitted', icon: <FaClock />, roles: ['*'] },
+        { name: 'Approved', path: '/invoices?status=approved', icon: <FaCheckCircle />, roles: ['*'] },
+        { name: 'Rejected', path: '/invoices?status=rejected', icon: <FaTimesCircle />, roles: ['*'] },
+        
+        // Admin BPJS specific
+        { name: 'Pending Review', path: '/invoices?status=submitted', icon: <FaEye />, roles: ['admin_bpjs'] },
       ]
     },
     {
-      name: 'Reports & Print',
-      icon: <FaPrint />,
+      name: 'Reports',
+      icon: <FaChartLine />,
       roles: ['*'],
       type: 'group',
       key: 'reports',
       children: [
         { name: 'Invoice Reports', path: '/reports/invoices', icon: <FaFileInvoiceDollar />, roles: ['*'] },
         { name: 'Patient Reports', path: '/reports/patients', icon: <FaUserMd />, roles: ['admin_rs'] },
-        { name: 'Billing Summary', path: '/reports/billing-summary', icon: <FaMoneyBillWave />, roles: ['*'] },
-        { name: 'Print Templates', path: '/reports/templates', icon: <FaPrint />, roles: ['admin_rs'] },
       ]
     },
-    {
-      name: 'BPJS Management',
-      icon: <FaUserTie />,
-      roles: ['admin_bpjs'],
-      type: 'group',
-      key: 'bpjs_management',
-      children: [
-        { name: 'Review Submissions', path: '/bpjs/submissions', icon: <FaEye />, roles: ['admin_bpjs'] },
-        { name: 'Approval Queue', path: '/bpjs/approval-queue', icon: <FaTasks />, roles: ['admin_bpjs'] },
-        { name: 'Payment Processing', path: '/bpjs/payments', icon: <FaMoneyBillWave />, roles: ['admin_bpjs'] },
-        { name: 'BPJS Reports', path: '/bpjs/reports', icon: <FaFileAlt />, roles: ['admin_bpjs'] },
-      ]
+    { 
+      name: 'Settings', 
+      path: '/settings', 
+      icon: <FaCog />, 
+      roles: ['*'], 
+      type: 'single'
     },
-    {
-      name: 'System',
-      icon: <FaCogs />,
-      roles: ['*'],
-      type: 'group',
-      key: 'system',
-      children: [
-        { name: 'Activity Logs', path: '/logs', icon: <FaHistory />, roles: ['*'] },
-        { name: 'Settings', path: '/settings', icon: <FaCog />, roles: ['*'] },
-        { name: 'User Profile', path: '/profile', icon: <FaUsers />, roles: ['*'] },
-      ]
-    }
   ];
 
   // Filter menus and their children by user roles
@@ -136,14 +130,12 @@ const Layout = ({ children }) => {
     if (menu.type === 'single') {
       return hasAccess(menu.roles);
     } else if (menu.type === 'group') {
-      // Check if user has access to any child menu
       const hasAccessToChildren = menu.children.some(child => hasAccess(child.roles));
       return hasAccessToChildren;
     }
     return false;
   }).map(menu => {
     if (menu.type === 'group') {
-      // Filter children by user roles
       return {
         ...menu,
         children: menu.children.filter(child => hasAccess(child.roles))
@@ -205,14 +197,6 @@ const Layout = ({ children }) => {
     }
   };
 
-  // Determine which logo to show based on user role
-  const getLogo = () => {
-    if (userRole === 'admin_bpjs') {
-      return BPJSLogo;
-    }
-    return HospitalLogo;
-  };
-
   const getAppName = () => {
     if (userRole === 'admin_bpjs') {
       return 'BPJS Admin Portal';
@@ -220,8 +204,20 @@ const Layout = ({ children }) => {
     return 'Hospital Billing System';
   };
 
+  const getRoleColor = () => {
+    return userRole === 'admin_bpjs' ? 'bg-green-500' : 'bg-blue-500';
+  };
+
+  const getRoleDisplayName = () => {
+    const roleNames = {
+      'admin_rs': 'Admin Rumah Sakit',
+      'admin_bpjs': 'Admin BPJS'
+    };
+    return roleNames[userRole] || userRole;
+  };
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-gray-50">
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
@@ -233,59 +229,67 @@ const Layout = ({ children }) => {
         {/* Sidebar */}
         <aside className={`
           fixed lg:static inset-y-0 left-0 z-30
-          w-64 bg-white shadow-lg flex flex-col
+          w-64 bg-white shadow-lg flex flex-col border-r
           transform transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
         `}>
-          <div className="flex items-center justify-between h-16 lg:h-20 border-b px-4">
+          {/* Logo Section */}
+          <div className="flex items-center justify-between h-16 lg:h-20 border-b px-4 bg-gradient-to-r from-blue-600 to-blue-700">
             <div className="flex items-center gap-3">
-              <img src={getLogo()} alt={getAppName()} className="h-8 lg:h-10" />
-              <div className="hidden lg:block">
-                <div className="text-sm font-semibold text-gray-800">{getAppName()}</div>
-                <div className="text-xs text-gray-500 capitalize">{userRole?.replace('_', ' ')}</div>
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <FaHospital className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="hidden lg:block text-white">
+                <div className="text-sm font-bold">BPJS Billing</div>
+                <div className="text-xs opacity-90">Management System</div>
               </div>
             </div>
             <button
               onClick={closeSidebar}
-              className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-md hover:bg-blue-600 text-white"
             >
               <FaTimes className="w-5 h-5" />
             </button>
           </div>
 
           {/* User Info */}
-          <div className="px-4 py-3 border-b bg-gray-50">
+          <div className="px-4 py-4 border-b bg-gray-50">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-                userRole === 'admin_bpjs' ? 'bg-green-500' : 'bg-blue-500'
-              }`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${getRoleColor()}`}>
                 {authenticatedUser?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
-              <div>
-                <div className="text-sm font-medium text-gray-800">{authenticatedUser?.name}</div>
-                <div className="text-xs text-gray-500 capitalize">{userRole?.replace('_', ' ')}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-gray-800 truncate">
+                  {authenticatedUser?.name || 'User'}
+                </div>
+                <div className="text-xs text-gray-500 truncate">
+                  {getRoleDisplayName()}
+                </div>
               </div>
             </div>
           </div>
 
+          {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {visibleMenus.map(renderMenuItem)}
           </nav>
           
-          <div className="p-4 border-t">
+          {/* Logout Button */}
+          <div className="p-4 border-t bg-gray-50">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 text-sm px-4 py-2 text-red-600 hover:bg-red-100 rounded-md"
+              className="w-full flex items-center gap-3 text-sm px-4 py-3 text-red-600 hover:bg-red-50 rounded-md transition-colors font-medium"
             >
-              <FaSignOutAlt /> Logout
+              <FaSignOutAlt className="w-4 h-4" />
+              Logout
             </button>
           </div>
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
-          {/* Mobile Navbar */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Mobile Header */}
           <header className="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
             <button
               onClick={toggleSidebar}
@@ -294,19 +298,19 @@ const Layout = ({ children }) => {
               <FaBars className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
-              <img src={getLogo()} alt={getAppName()} className="h-8" />
-              <span className="text-sm font-medium">{getAppName()}</span>
+              <FaHospital className="w-6 h-6 text-blue-600" />
+              <span className="text-sm font-semibold text-gray-800">BPJS Billing</span>
             </div>
             <div className="w-9" />
           </header>
 
-          <main className="flex-1 overflow-y-auto bg-gray-100">
-            <div className="p-4 lg:p-6">
-              {children}
-            </div>
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto">
+            {children}
           </main>
 
-          <footer className="bg-white border-t px-4 py-3 text-sm text-gray-500 text-center">
+          {/* Footer */}
+          <footer className="bg-white border-t px-6 py-3 text-sm text-gray-500 text-center">
             © {new Date().getFullYear()} Hospital-BPJS Billing System. All rights reserved.
           </footer>
         </div>

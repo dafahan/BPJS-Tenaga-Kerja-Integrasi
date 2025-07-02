@@ -1,64 +1,78 @@
 <?php
-
+// ServiceController.php
 namespace App\Http\Controllers;
 
+use App\Models\Service;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ServiceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $services = Service::with('category')
+            ->orderBy('name')
+            ->get();
+        
+        $categories = Category::active()->orderBy('name')->get();
+
+        return Inertia::render('Services', [
+            'services' => $services,
+            'categories' => $categories
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:services',
+            'tarif' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'status' => 'boolean'
+        ]);
+
+        $service = Service::create($validated);
+
+        return response()->json([
+            'message' => 'Service created successfully',
+            'service' => $service->load('category')
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Service $service)
     {
-        //
+        $service->load('category');
+        return response()->json($service);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, Service $service)
     {
-        //
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:services,code,' . $service->id,
+            'tarif' => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'status' => 'boolean'
+        ]);
+
+        $service->update($validated);
+
+        return response()->json([
+            'message' => 'Service updated successfully',
+            'service' => $service->load('category')
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Service $service)
     {
-        //
-    }
+        $service->delete();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json([
+            'message' => 'Service deleted successfully'
+        ]);
     }
 }

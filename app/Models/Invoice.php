@@ -13,6 +13,7 @@ class Invoice extends Model
     protected $fillable = [
         'medical_record_id',
         'invoice_number',
+        'tanggal_jkk',
         'total_amount',
         'status',
         'notes',

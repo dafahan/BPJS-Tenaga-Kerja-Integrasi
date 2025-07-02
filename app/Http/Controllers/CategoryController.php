@@ -2,63 +2,111 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
+use App\Models\Service;
+use App\Models\Medicine;
+use App\Models\Action;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $categories = Category::with(['services', 'actions'])
+            ->withCount(['services', 'actions'])
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('Categories', [
+            'categories' => $categories
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:categories',
+            'description' => 'nullable|string',
+            'status' => 'boolean'
+        ]);
+
+        $category = Category::create($validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Category created successfully',
+                'category' => $category->load(['services', 'actions'])
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Category created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Category $category)
     {
-        //
+        $category->load(['services', 'actions']);
+        
+        return response()->json($category);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, Category $category)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:categories,code,' . $category->id,
+            'description' => 'nullable|string',
+            'status' => 'boolean'
+        ]);
+
+        $category->update($validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Category updated successfully',
+                'category' => $category->load(['services', 'actions'])
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Category updated successfully');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Category $category)
     {
-        //
+        try {
+            $category->delete();
+            
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Category deleted successfully'
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Category deleted successfully');
+        } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete category: ' . $e->getMessage()
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', 'Cannot delete category: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function getItems(Category $category)
     {
-        //
+        $services = $category->services()->active()->get();
+        $actions = $category->actions()->active()->get();
+
+        return response()->json([
+            'services' => $services,
+            'actions' => $actions
+        ]);
     }
 }
