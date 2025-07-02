@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Trash2, Edit, Plus, FileText, User, Calendar, Activity, Search, Filter, Eye } from 'lucide-react';
 import Layout from '@/js/Layouts/Layout';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 
 export default function Index({ medicalRecords }) {
     const [showModal, setShowModal] = useState(false);
@@ -11,6 +13,8 @@ export default function Index({ medicalRecords }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [jenisRawatFilter, setJenisRawatFilter] = useState('all');
+    const [records, setRecords] = useState(medicalRecords.data);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         patient_id: '',
         no_rawat_medis: '',
@@ -27,9 +31,8 @@ export default function Index({ medicalRecords }) {
     const searchPatients = async (query) => {
         if (query.length > 2) {
             try {
-                const response = await fetch(`/api/patients/search?q=${query}`);
-                const data = await response.json();
-                setPatients(data);
+                const response = await axios.get(`/api/patients/search?q=${query}`);
+                setPatients(response.data);
             } catch (error) {
                 console.error('Error searching patients:', error);
                 setPatients([]);
@@ -46,35 +49,70 @@ export default function Index({ medicalRecords }) {
         return () => clearTimeout(timer);
     }, [patientSearch]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (!formData.patient_id) {
-            alert('Please select a patient');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Information',
+                text: 'Please select a patient',
+                confirmButtonColor: '#3B82F6'
+            });
             return;
         }
         
-        if (editingRecord) {
-            router.put(`/medical-records/${editingRecord.id}`, formData, {
-                onSuccess: () => {
-                    setShowModal(false);
-                    setEditingRecord(null);
-                    resetForm();
-                },
-                onError: (errors) => {
-                    console.error('Validation errors:', errors);
-                }
+        setLoading(true);
+        
+        try {
+            let response;
+            if (editingRecord) {
+                response = await axios.put(`/medical-records/${editingRecord.id}`, formData);
+            } else {
+                response = await axios.post('/medical-records', formData);
+            }
+
+            // Show success message
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: response.data.message || (editingRecord ? 'Medical record updated successfully' : 'Medical record created successfully'),
+                confirmButtonColor: '#10B981'
             });
-        } else {
-            router.post('/medical-records', formData, {
-                onSuccess: () => {
-                    setShowModal(false);
-                    resetForm();
-                },
-                onError: (errors) => {
-                    console.error('Validation errors:', errors);
-                }
+
+            // Update the records state
+            if (editingRecord) {
+                setRecords(records.map(record => 
+                    record.id === editingRecord.id ? response.data.medicalRecord : record
+                ));
+            } else {
+                setRecords([response.data.medicalRecord, ...records]);
+            }
+
+            // Close modal and reset form
+            setShowModal(false);
+            setEditingRecord(null);
+            resetForm();
+
+        } catch (error) {
+            console.error('Error saving medical record:', error);
+            
+            let errorMessage = 'An error occurred while saving the medical record';
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.response?.data?.errors) {
+                const errors = Object.values(error.response.data.errors).flat();
+                errorMessage = errors.join(', ');
+            }
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMessage,
+                confirmButtonColor: '#EF4444'
             });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -119,16 +157,50 @@ export default function Index({ medicalRecords }) {
         setShowModal(true);
     };
 
-    const deleteRecord = (id, no_rawat) => {
-        if (confirm(`Are you sure you want to delete medical record "${no_rawat}"?`)) {
-            router.delete(`/medical-records/${id}`, {
-                onSuccess: () => {
-                    // Success message will be handled by flash messages
-                },
-                onError: (error) => {
-                    alert('Error deleting medical record. Please try again.');
+    const deleteRecord = async (id, no_rawat) => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to delete medical record "${no_rawat}"? This action cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                setLoading(true);
+                const response = await axios.delete(`/medical-records/${id}`);
+
+                // Remove the record from state
+                setRecords(records.filter(record => record.id !== id));
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Deleted!',
+                    text: response.data.message || 'Medical record has been deleted successfully.',
+                    confirmButtonColor: '#10B981'
+                });
+
+            } catch (error) {
+                console.error('Error deleting medical record:', error);
+                
+                let errorMessage = 'Error deleting medical record. Please try again.';
+                if (error.response?.data?.message) {
+                    errorMessage = error.response.data.message;
                 }
-            });
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMessage,
+                    confirmButtonColor: '#EF4444'
+                });
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -162,7 +234,7 @@ export default function Index({ medicalRecords }) {
     };
 
     // Filter medical records
-    const filteredRecords = medicalRecords.data.filter(record => {
+    const filteredRecords = records.filter(record => {
         const matchesSearch = record.no_rawat_medis.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             record.patient?.nama_pasien.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             record.patient?.no_kpj.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -173,14 +245,14 @@ export default function Index({ medicalRecords }) {
         return matchesSearch && matchesStatus && matchesJenisRawat;
     });
 
-    // Statistics
+    // Statistics (using current records state)
     const stats = {
-        total: medicalRecords.data.length,
-        active: medicalRecords.data.filter(r => r.status === 'active').length,
-        completed: medicalRecords.data.filter(r => r.status === 'completed').length,
-        ugd: medicalRecords.data.filter(r => r.jenis_rawat === 'ugd').length,
-        rawat_inap: medicalRecords.data.filter(r => r.jenis_rawat === 'rawat_inap').length,
-        rawat_jalan: medicalRecords.data.filter(r => r.jenis_rawat === 'rawat_jalan').length
+        total: records.length,
+        active: records.filter(r => r.status === 'active').length,
+        completed: records.filter(r => r.status === 'completed').length,
+        ugd: records.filter(r => r.jenis_rawat === 'ugd').length,
+        rawat_inap: records.filter(r => r.jenis_rawat === 'rawat_inap').length,
+        rawat_jalan: records.filter(r => r.jenis_rawat === 'rawat_jalan').length
     };
 
     return (
@@ -188,6 +260,15 @@ export default function Index({ medicalRecords }) {
             <Head title="Medical Records" />
             
             <div className="p-6">
+                {loading && (
+                    <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 flex items-center space-x-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <span className="text-gray-700">Processing...</span>
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Medical Records</h1>
@@ -195,7 +276,8 @@ export default function Index({ medicalRecords }) {
                     </div>
                     <button
                         onClick={openAddModal}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                        disabled={loading}
+                        className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                     >
                         <Plus size={20} />
                         New Medical Record
@@ -311,6 +393,7 @@ export default function Index({ medicalRecords }) {
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medical Record</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Treatment Type</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Range</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -393,14 +476,16 @@ export default function Index({ medicalRecords }) {
                                                     </button>
                                                     <button
                                                         onClick={() => openEditModal(record)}
-                                                        className="text-blue-600 hover:text-blue-900 transition-colors"
+                                                        disabled={loading}
+                                                        className="text-blue-600 hover:text-blue-900 disabled:text-blue-300 transition-colors"
                                                         title="Edit Record"
                                                     >
                                                         <Edit size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => deleteRecord(record.id, record.no_rawat_medis)}
-                                                        className="text-red-600 hover:text-red-900 transition-colors"
+                                                        disabled={loading}
+                                                        className="text-red-600 hover:text-red-900 disabled:text-red-300 transition-colors"
                                                         title="Delete Record"
                                                     >
                                                         <Trash2 size={16} />
