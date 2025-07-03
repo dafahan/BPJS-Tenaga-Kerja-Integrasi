@@ -269,35 +269,38 @@ export default function Show({ invoice }) {
                            </div>
                            
                            <div className="space-y-3">
-                               <div className="flex justify-between">
-                                   <span className="text-sm text-gray-600">Invoice Number:</span>
-                                   <span className="text-sm font-medium">{invoice.invoice_number}</span>
-                               </div>
-                               <div className="flex justify-between">
-                                   <span className="text-sm text-gray-600">Tanggal JKK:</span>
-                                   <span className="text-sm font-medium">{formatDate(invoice.tanggal_jkk)}</span>
-                               </div>
-                               <div className="flex justify-between">
-                                   <span className="text-sm text-gray-600">Status:</span>
-                                   {getStatusBadge(invoice.status)}
-                               </div>
-                               <div className="flex justify-between">
-                                   <span className="text-sm text-gray-600">Created:</span>
-                                   <span className="text-sm">{formatDate(invoice.created_at)}</span>
-                               </div>
-                               {invoice.submitted_at && (
-                                   <div className="flex justify-between">
-                                       <span className="text-sm text-gray-600">Submitted:</span>
-                                       <span className="text-sm">{formatDate(invoice.submitted_at)}</span>
-                                   </div>
-                               )}
-                               {invoice.approved_at && (
-                                   <div className="flex justify-between">
-                                       <span className="text-sm text-gray-600">Approved:</span>
-                                       <span className="text-sm">{formatDate(invoice.approved_at)}</span>
-                                   </div>
-                               )}
-                           </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Invoice Number:</span>
+                                    <span className="text-sm font-medium">{invoice.invoice_number}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Tanggal JKK:</span>
+                                    <span className="text-sm font-medium">
+                                        {invoice.tanggal_jkk ? new Date(invoice.tanggal_jkk).toLocaleDateString('id-ID') : '-'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Status:</span>
+                                    {getStatusBadge(invoice.status)}
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Created:</span>
+                                    <span className="text-sm">{formatDate(invoice.created_at)}</span>
+                                </div>
+                                {invoice.submitted_at && (
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600">Submitted:</span>
+                                        <span className="text-sm">{formatDate(invoice.submitted_at)}</span>
+                                    </div>
+                                )}
+                                {invoice.approved_at && (
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600">Approved:</span>
+                                        <span className="text-sm">{formatDate(invoice.approved_at)}</span>
+                                    </div>
+                                )}
+                            </div>
+
                        </div>
 
                        {/* Total Amount */}

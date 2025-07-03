@@ -64,6 +64,7 @@ class InvoiceController extends Controller
         $validated = $request->validate([
             'medical_record_id' => 'required|exists:medical_records,id',
             'invoice_number' => 'required|string|unique:invoices',
+            'tanggal_jkk' => 'required|date',
             'notes' => 'nullable|string',
             'details' => 'required|array|min:1',
             'details.*.item_type' => 'required|in:service,medicine',
@@ -75,6 +76,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::create([
             'medical_record_id' => $validated['medical_record_id'],
             'invoice_number' => $validated['invoice_number'],
+            'tanggal_jkk' => $validated['tanggal_jkk'],
             'notes' => $validated['notes'] ?? null,
             'status' => 'draft',
             'created_by' => auth()->id(),
@@ -113,6 +115,67 @@ class InvoiceController extends Controller
         }
 
         return redirect()->route('invoices.index')->with('success', 'Invoice created successfully');
+    }
+
+    // Update InvoiceController.php update method
+    public function update(Request $request, Invoice $invoice)
+    {
+        if ($invoice->status !== 'draft') {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Cannot edit submitted invoice'], 422);
+            }
+            return redirect()->back()->with('error', 'Cannot edit submitted invoice');
+        }
+
+        $validated = $request->validate([
+            'tanggal_jkk' => 'required|date',
+            'notes' => 'nullable|string',
+            'details' => 'required|array|min:1',
+            'details.*.item_type' => 'required|in:service,medicine',
+            'details.*.item_id' => 'required|integer',
+            'details.*.quantity' => 'required|integer|min:1',
+            'details.*.unit_price' => 'required|numeric|min:0',
+        ]);
+
+        $invoice->update([
+            'tanggal_jkk' => $validated['tanggal_jkk'],
+            'notes' => $validated['notes'] ?? null
+        ]);
+        
+        $invoice->invoiceDetails()->delete();
+
+        $totalAmount = 0;
+        foreach ($validated['details'] as $detail) {
+            $subtotal = $detail['quantity'] * $detail['unit_price'];
+            
+            $itemName = $this->getItemName($detail['item_type'], $detail['item_id']);
+            $itemCode = $this->getItemCode($detail['item_type'], $detail['item_id']);
+
+            InvoiceDetail::create([
+                'invoice_id' => $invoice->id,
+                'item_type' => $detail['item_type'],
+                'item_id' => $detail['item_id'],
+                'item_name' => $itemName,
+                'item_code' => $itemCode,
+                'quantity' => $detail['quantity'],
+                'unit_price' => $detail['unit_price'],
+                'subtotal' => $subtotal
+            ]);
+
+            $totalAmount += $subtotal;
+        }
+
+        $invoice->update(['total_amount' => $totalAmount]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice updated successfully',
+                'invoice' => $invoice->load(['medicalRecord.patient'])
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Invoice updated successfully');
     }
 
     public function show(Invoice $invoice)
@@ -160,61 +223,7 @@ class InvoiceController extends Controller
         ]);
     }
 
-    // Update InvoiceController.php update method  
-    public function update(Request $request, Invoice $invoice)
-    {
-        if ($invoice->status !== 'draft') {
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Cannot edit submitted invoice'], 422);
-            }
-            return redirect()->back()->with('error', 'Cannot edit submitted invoice');
-        }
 
-        $validated = $request->validate([
-            'notes' => 'nullable|string',
-            'details' => 'required|array|min:1',
-            'details.*.item_type' => 'required|in:service,medicine',
-            'details.*.item_id' => 'required|integer',
-            'details.*.quantity' => 'required|integer|min:1',
-            'details.*.unit_price' => 'required|numeric|min:0',
-        ]);
-
-        $invoice->update(['notes' => $validated['notes'] ?? null]);
-        $invoice->invoiceDetails()->delete();
-
-        $totalAmount = 0;
-        foreach ($validated['details'] as $detail) {
-            $subtotal = $detail['quantity'] * $detail['unit_price'];
-            
-            $itemName = $this->getItemName($detail['item_type'], $detail['item_id']);
-            $itemCode = $this->getItemCode($detail['item_type'], $detail['item_id']);
-
-            InvoiceDetail::create([
-                'invoice_id' => $invoice->id,
-                'item_type' => $detail['item_type'],
-                'item_id' => $detail['item_id'],
-                'item_name' => $itemName,
-                'item_code' => $itemCode,
-                'quantity' => $detail['quantity'],
-                'unit_price' => $detail['unit_price'],
-                'subtotal' => $subtotal
-            ]);
-
-            $totalAmount += $subtotal;
-        }
-
-        $invoice->update(['total_amount' => $totalAmount]);
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Invoice updated successfully',
-                'invoice' => $invoice->load(['medicalRecord.patient'])
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Invoice updated successfully');
-    }
 
     public function submit(Invoice $invoice)
     {

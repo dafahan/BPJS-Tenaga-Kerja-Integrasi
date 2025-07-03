@@ -21,6 +21,7 @@ export default function Index({ invoices, filters, medicalRecords, services, med
     const [formData, setFormData] = useState({
         medical_record_id: '',
         invoice_number: '',
+        tanggal_jkk: '',
         notes: '',
         details: []
     });
@@ -75,6 +76,7 @@ export default function Index({ invoices, filters, medicalRecords, services, med
         setFormData({
             medical_record_id: '',
             invoice_number: generateInvoiceNumber(),
+            tanggal_jkk: '',
             notes: '',
             details: []
         });
@@ -89,20 +91,21 @@ export default function Index({ invoices, filters, medicalRecords, services, med
     };
 
     const openEditModal = (invoice) => {
-        setEditingInvoice(invoice);
-        setFormData({
-            medical_record_id: invoice.medical_record_id,
-            invoice_number: invoice.invoice_number,
-            notes: invoice.notes || '',
-            details: invoice.invoice_details?.map(detail => ({
-                item_type: detail.item_type,
-                item_id: detail.item_id,
-                quantity: detail.quantity,
-                unit_price: detail.unit_price
-            })) || []
-        });
-        setPatientSearch(`${invoice.medical_record?.patient?.nama_pasien} - ${invoice.medical_record?.no_rawat_medis}`);
-        setShowModal(true);
+            setEditingInvoice(invoice);
+            setFormData({
+                medical_record_id: invoice.medical_record_id,
+                invoice_number: invoice.invoice_number,
+                tanggal_jkk: invoice.tanggal_jkk || '',
+                notes: invoice.notes || '',
+                details: invoice.invoice_details?.map(detail => ({
+                    item_type: detail.item_type,
+                    item_id: detail.item_id,
+                    quantity: detail.quantity,
+                    unit_price: detail.unit_price
+                })) || []
+            });
+            setPatientSearch(`${invoice.medical_record?.patient?.nama_pasien} - ${invoice.medical_record?.no_rawat_medis}`);
+            setShowModal(true);
     };
 
     const selectMedicalRecord = (record) => {
@@ -496,76 +499,88 @@ export default function Index({ invoices, filters, medicalRecords, services, med
                            </div>
 
                            <form onSubmit={handleSubmit} className="space-y-6">
-                               {/* Basic Information */}
-                               <div className="bg-gray-50 rounded-lg p-4">
-                                   <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
-                                   
-                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                       <div>
-                                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                                               Invoice Number *
-                                           </label>
-                                           <input
-                                               type="text"
-                                               value={formData.invoice_number}
-                                               onChange={(e) => setFormData({...formData, invoice_number: e.target.value})}
-                                               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                               required
-                                               readOnly={editingInvoice}
-                                           />
-                                       </div>
-                                       
-                                       <div>
-                                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                                               Search Medical Record *
-                                           </label>
-                                           <div className="relative">
-                                               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                               <input
-                                                   type="text"
-                                                   value={patientSearch}
-                                                   onChange={(e) => setPatientSearch(e.target.value)}
-                                                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                   placeholder="Search by patient name or medical record number..."
-                                                   required
-                                               />
-                                           </div>
-                                           
-                                           {patients.length > 0 && (
-                                               <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
-                                                   {medicalRecordOptions.filter(record => 
-                                                       patients.some(patient => patient.id === record.patient_id)
-                                                   ).map((record) => (
-                                                       <div
-                                                           key={record.id}
-                                                           onClick={() => selectMedicalRecord(record)}
-                                                           className="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                                       >
-                                                           <div className="font-medium text-gray-900">{record.patient?.nama_pasien}</div>
-                                                           <div className="text-sm text-gray-500">
-                                                               Medical Record: {record.no_rawat_medis} | KPJ: {record.patient?.no_kpj}
-                                                           </div>
-                                                           <div className="text-xs text-gray-400">{record.diagnosis}</div>
-                                                       </div>
-                                                   ))}
-                                               </div>
-                                           )}
-                                       </div>
-                                   </div>
-                                   
-                                   <div className="mt-4">
-                                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                                           Notes
-                                       </label>
-                                       <textarea
-                                           value={formData.notes}
-                                           onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                           rows="3"
-                                           placeholder="Additional notes for this invoice..."
-                                       />
-                                   </div>
-                               </div>
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Invoice Number *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.invoice_number}
+                                            onChange={(e) => setFormData({...formData, invoice_number: e.target.value})}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            required
+                                            readOnly={editingInvoice}
+                                        />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Tanggal JKK *
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={formData.tanggal_jkk}
+                                            onChange={(e) => setFormData({...formData, tanggal_jkk: e.target.value})}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            required
+                                        />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Search Medical Record *
+                                        </label>
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                            <input
+                                                type="text"
+                                                value={patientSearch}
+                                                onChange={(e) => setPatientSearch(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Search by patient name or medical record number..."
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        {patients.length > 0 && (
+                                            <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
+                                                {medicalRecordOptions.filter(record => 
+                                                    patients.some(patient => patient.id === record.patient_id)
+                                                ).map((record) => (
+                                                    <div
+                                                        key={record.id}
+                                                        onClick={() => selectMedicalRecord(record)}
+                                                        className="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                                    >
+                                                        <div className="font-medium text-gray-900">{record.patient?.nama_pasien}</div>
+                                                        <div className="text-sm text-gray-500">
+                                                            Medical Record: {record.no_rawat_medis} | KPJ: {record.patient?.no_kpj}
+                                                        </div>
+                                                        <div className="text-xs text-gray-400">{record.diagnosis}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Notes
+                                    </label>
+                                    <textarea
+                                        value={formData.notes}
+                                        onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        rows="3"
+                                        placeholder="Additional notes for this invoice..."
+                                    />
+                                </div>
+                                </div>
 
                                {/* Invoice Details */}
                                <div className="bg-gray-50 rounded-lg p-4">

@@ -27,6 +27,7 @@ class Invoice extends Model
     {
         return [
             'total_amount' => 'decimal:2',
+            'tanggal_jkk' => 'date',
             'submitted_at' => 'datetime',
             'approved_at' => 'datetime',
         ];
