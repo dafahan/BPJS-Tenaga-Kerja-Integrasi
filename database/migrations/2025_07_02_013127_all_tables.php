@@ -40,16 +40,6 @@ return new class extends Migration
             $table->boolean('status')->default(true);
             $table->timestamps();
         });
-        Schema::create('actions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->string('code')->unique();
-            $table->decimal('tarif', 15, 2);
-            $table->text('description')->nullable();
-            $table->boolean('status')->default(true);
-            $table->timestamps();
-        });
         Schema::create('patients', function (Blueprint $table) {
             $table->id();
             $table->string('no_kpj')->unique();
@@ -92,7 +82,7 @@ return new class extends Migration
         Schema::create('invoice_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('invoice_id')->constrained()->onDelete('cascade');
-            $table->enum('item_type', ['service', 'medicine', 'action']);
+            $table->enum('item_type', ['service', 'medicine']);
             $table->unsignedBigInteger('item_id'); // polymorphic reference
             $table->string('item_name'); // store name for historical data
             $table->string('item_code'); // store code for historical data
@@ -123,7 +113,6 @@ return new class extends Migration
         Schema::dropIfExists('categories');
         Schema::dropIfExists('services');
         Schema::dropIfExists('medicines');
-        Schema::dropIfExists('actions');
         Schema::dropIfExists('patients');
         Schema::dropIfExists('medical_records');
         Schema::dropIfExists('invoices');

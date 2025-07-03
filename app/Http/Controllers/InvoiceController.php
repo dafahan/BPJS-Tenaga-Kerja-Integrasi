@@ -9,7 +9,6 @@ use App\Models\MedicalRecord;
 use App\Models\Category;
 use App\Models\Service;
 use App\Models\Medicine;
-use App\Models\Action;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -42,7 +41,6 @@ class InvoiceController extends Controller
         $categories = Category::active()->orderBy('name')->get();
         $services = Service::active()->orderBy('name')->get();
         $medicines = Medicine::active()->orderBy('name')->get();
-        $actions = Action::active()->orderBy('name')->get();
 
         return Inertia::render('Invoices', [
             'invoices' => $invoices,
@@ -51,7 +49,6 @@ class InvoiceController extends Controller
             'categories' => $categories,
             'services' => $services,
             'medicines' => $medicines,
-            'actions' => $actions
         ]);
     }
 
@@ -61,79 +58,51 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.index');
     }
 
+    // Update InvoiceController.php store method
     public function store(Request $request)
     {
-
         $validated = $request->validate([
             'medical_record_id' => 'required|exists:medical_records,id',
             'invoice_number' => 'required|string|unique:invoices',
-            'tanggal_jkk' => 'required|date',
             'notes' => 'nullable|string',
-            'details' => 'nullable|array',
-            'details.*.item_type' => 'required_with:details|in:service,medicine,action',
-            'details.*.item_id' => 'required_with:details|integer',
-            'details.*.quantity' => 'required_with:details|integer|min:1',
-            'details.*.unit_price' => 'required_with:details|numeric|min:0',
-            'categories' => 'nullable|array',
-            'categories.*.category_id' => 'required|exists:categories,id',
-            'categories.*.total_amount' => 'required|numeric|min:0',
-            'categories.*.description' => 'nullable|string'
+            'details' => 'required|array|min:1',
+            'details.*.item_type' => 'required|in:service,medicine',
+            'details.*.item_id' => 'required|integer',
+            'details.*.quantity' => 'required|integer|min:1',
+            'details.*.unit_price' => 'required|numeric|min:0',
         ]);
 
         $invoice = Invoice::create([
             'medical_record_id' => $validated['medical_record_id'],
             'invoice_number' => $validated['invoice_number'],
-            'tanggal_jkk' => $validated['tanggal_jkk'],
             'notes' => $validated['notes'] ?? null,
             'status' => 'draft',
             'created_by' => auth()->id(),
             'total_amount' => 0
         ]);
-        // add invoice details
-        $totalDetails = 0;
-        if (isset($validated['details']) && !empty($validated['details'])) {
-            foreach ($validated['details'] as $detail) {
-                $subtotal = $detail['quantity'] * $detail['unit_price'];
-                
-                // Get item info
-                $itemName = $this->getItemName($detail['item_type'], $detail['item_id']);
-                $itemCode = $this->getItemCode($detail['item_type'], $detail['item_id']);
 
-                InvoiceDetail::create([
-                    'invoice_id' => $invoice->id,
-                    'item_type' => $detail['item_type'],
-                    'item_id' => $detail['item_id'],
-                    'item_name' => $itemName,
-                    'item_code' => $itemCode,
-                    'quantity' => $detail['quantity'],
-                    'unit_price' => $detail['unit_price'],
-                    'subtotal' => $subtotal
-                ]);
+        $totalAmount = 0;
+        foreach ($validated['details'] as $detail) {
+            $subtotal = $detail['quantity'] * $detail['unit_price'];
+            
+            $itemName = $this->getItemName($detail['item_type'], $detail['item_id']);
+            $itemCode = $this->getItemCode($detail['item_type'], $detail['item_id']);
 
-                $totalDetails += $subtotal;
-            }
+            InvoiceDetail::create([
+                'invoice_id' => $invoice->id,
+                'item_type' => $detail['item_type'],
+                'item_id' => $detail['item_id'],
+                'item_name' => $itemName,
+                'item_code' => $itemCode,
+                'quantity' => $detail['quantity'],
+                'unit_price' => $detail['unit_price'],
+                'subtotal' => $subtotal
+            ]);
+
+            $totalAmount += $subtotal;
         }
 
-        // Add invoice categories
-        $totalCategories = 0;
-        if (isset($validated['categories'])) {
-            foreach ($validated['categories'] as $categoryData) {
-                $category = Category::find($categoryData['category_id']);
-                
-                InvoiceCategory::create([
-                    'invoice_id' => $invoice->id,
-                    'category_id' => $categoryData['category_id'],
-                    'category_name' => $category->name,
-                    'total_amount' => $categoryData['total_amount'],
-                    'description' => $categoryData['description'] ?? null
-                ]);
-
-                $totalCategories += $categoryData['total_amount'];
-            }
-        }
-
-        // Update total amount
-        $invoice->update(['total_amount' => $totalDetails + $totalCategories]);
+        $invoice->update(['total_amount' => $totalAmount]);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -181,7 +150,6 @@ class InvoiceController extends Controller
         $categories = Category::active()->orderBy('name')->get();
         $services = Service::active()->orderBy('name')->get();
         $medicines = Medicine::active()->orderBy('name')->get();
-        $actions = Action::active()->orderBy('name')->get();
 
         return Inertia::render('InvoiceEdit', [
             'invoice' => $invoice,
@@ -189,14 +157,13 @@ class InvoiceController extends Controller
             'categories' => $categories,
             'services' => $services,
             'medicines' => $medicines,
-            'actions' => $actions
         ]);
     }
 
+    // Update InvoiceController.php update method  
     public function update(Request $request, Invoice $invoice)
     {
-        
-        if ($invoice->status !== 'draft' && auth()->user()->role === 'admin_rs') {
+        if ($invoice->status !== 'draft') {
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Cannot edit submitted invoice'], 422);
             }
@@ -204,70 +171,39 @@ class InvoiceController extends Controller
         }
 
         $validated = $request->validate([
-            'tanggal_jkk' => 'required|date',
             'notes' => 'nullable|string',
-            'details' => 'nullable|array',
-            'details.*.item_type' => 'required_with:details|in:service,medicine,action',
-            'details.*.item_id' => 'required_with:details|integer',
-            'details.*.quantity' => 'required_with:details|integer|min:1',
-            'details.*.unit_price' => 'required_with:details|numeric|min:0',
-            'categories' => 'nullable|array',
-            'categories.*.category_id' => 'required|exists:categories,id',
-            'categories.*.total_amount' => 'required|numeric|min:0',
-            'categories.*.description' => 'nullable|string'
+            'details' => 'required|array|min:1',
+            'details.*.item_type' => 'required|in:service,medicine',
+            'details.*.item_id' => 'required|integer',
+            'details.*.quantity' => 'required|integer|min:1',
+            'details.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        $invoice->update([
-            'tanggal_jkk' => $validated['tanggal_jkk'],
-            'notes' => $validated['notes'] ?? null
-        ]);
-
-        // Delete existing details and categories
+        $invoice->update(['notes' => $validated['notes'] ?? null]);
         $invoice->invoiceDetails()->delete();
-        $invoice->invoiceCategories()->delete();
 
-        // Re-add details and categories (same logic as store)
-        $totalDetails = 0;
-        if (isset($validated['details']) && !empty($validated['details'])) {
-            foreach ($validated['details'] as $detail) {
-                $subtotal = $detail['quantity'] * $detail['unit_price'];
-                
-                $itemName = $this->getItemName($detail['item_type'], $detail['item_id']);
-                $itemCode = $this->getItemCode($detail['item_type'], $detail['item_id']);
+        $totalAmount = 0;
+        foreach ($validated['details'] as $detail) {
+            $subtotal = $detail['quantity'] * $detail['unit_price'];
+            
+            $itemName = $this->getItemName($detail['item_type'], $detail['item_id']);
+            $itemCode = $this->getItemCode($detail['item_type'], $detail['item_id']);
 
-                InvoiceDetail::create([
-                    'invoice_id' => $invoice->id,
-                    'item_type' => $detail['item_type'],
-                    'item_id' => $detail['item_id'],
-                    'item_name' => $itemName,
-                    'item_code' => $itemCode,
-                    'quantity' => $detail['quantity'],
-                    'unit_price' => $detail['unit_price'],
-                    'subtotal' => $subtotal
-                ]);
+            InvoiceDetail::create([
+                'invoice_id' => $invoice->id,
+                'item_type' => $detail['item_type'],
+                'item_id' => $detail['item_id'],
+                'item_name' => $itemName,
+                'item_code' => $itemCode,
+                'quantity' => $detail['quantity'],
+                'unit_price' => $detail['unit_price'],
+                'subtotal' => $subtotal
+            ]);
 
-                $totalDetails += $subtotal;
-            }
+            $totalAmount += $subtotal;
         }
 
-        $totalCategories = 0;
-        if (isset($validated['categories'])) {
-            foreach ($validated['categories'] as $categoryData) {
-                $category = Category::find($categoryData['category_id']);
-                
-                InvoiceCategory::create([
-                    'invoice_id' => $invoice->id,
-                    'category_id' => $categoryData['category_id'],
-                    'category_name' => $category->name,
-                    'total_amount' => $categoryData['total_amount'],
-                    'description' => $categoryData['description'] ?? null
-                ]);
-
-                $totalCategories += $categoryData['total_amount'];
-            }
-        }
-
-        $invoice->update(['total_amount' => $totalDetails + $totalCategories]);
+        $invoice->update(['total_amount' => $totalAmount]);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -434,8 +370,6 @@ class InvoiceController extends Controller
                 return Service::find($id)->name ?? '';
             case 'medicine':
                 return Medicine::find($id)->name ?? '';
-            case 'action':
-                return Action::find($id)->name ?? '';
             default:
                 return '';
         }
@@ -448,8 +382,6 @@ class InvoiceController extends Controller
                 return Service::find($id)->code ?? '';
             case 'medicine':
                 return Medicine::find($id)->code ?? '';
-            case 'action':
-                return Action::find($id)->code ?? '';
             default:
                 return '';
         }

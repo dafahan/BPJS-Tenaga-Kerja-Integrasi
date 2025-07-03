@@ -1,4 +1,4 @@
-
+// Update Invoices.jsx - Remove category section from form
 import { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Eye, Edit, Trash2, FileText, Check, X, Plus, Search, ArrowLeft } from 'lucide-react';
@@ -6,7 +6,7 @@ import Layout from '@/js/Layouts/Layout';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
-export default function Index({ invoices, filters, medicalRecords, categories, services, medicines, actions }) {
+export default function Index({ invoices, filters, medicalRecords, services, medicines }) {
     const { auth } = usePage().props;
     const [showModal, setShowModal] = useState(false);
     const [editingInvoice, setEditingInvoice] = useState(null);
@@ -21,10 +21,8 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
     const [formData, setFormData] = useState({
         medical_record_id: '',
         invoice_number: '',
-        tanggal_jkk: '',
         notes: '',
-        details: [],
-        categories: []
+        details: []
     });
 
     const getStatusBadge = (status) => {
@@ -44,7 +42,6 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
         );
     };
 
-    // Generate invoice number
     const generateInvoiceNumber = () => {
         const now = new Date();
         const year = now.getFullYear();
@@ -78,10 +75,8 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
         setFormData({
             medical_record_id: '',
             invoice_number: generateInvoiceNumber(),
-            tanggal_jkk: '',
             notes: '',
-            details: [],
-            categories: []
+            details: []
         });
         setPatientSearch('');
         setPatients([]);
@@ -98,18 +93,12 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
         setFormData({
             medical_record_id: invoice.medical_record_id,
             invoice_number: invoice.invoice_number,
-            tanggal_jkk: invoice.tanggal_jkk || '',
             notes: invoice.notes || '',
             details: invoice.invoice_details?.map(detail => ({
                 item_type: detail.item_type,
                 item_id: detail.item_id,
                 quantity: detail.quantity,
                 unit_price: detail.unit_price
-            })) || [],
-            categories: invoice.invoice_categories?.map(cat => ({
-                category_id: cat.category_id,
-                total_amount: cat.total_amount,
-                description: cat.description
             })) || []
         });
         setPatientSearch(`${invoice.medical_record?.patient?.nama_pasien} - ${invoice.medical_record?.no_rawat_medis}`);
@@ -138,7 +127,6 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
         const newDetails = [...formData.details];
         newDetails[index][field] = value;
         
-        // Auto-fill price when item is selected
         if (field === 'item_id' && value) {
             const itemType = newDetails[index].item_type;
             let price = 0;
@@ -149,9 +137,6 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
             } else if (itemType === 'medicine') {
                 const medicine = medicines?.find(m => m.id == value);
                 price = medicine?.price || 0;
-            } else if (itemType === 'action') {
-                const action = actions?.find(a => a.id == value);
-                price = action?.tarif || 0;
             }
             
             newDetails[index].unit_price = price;
@@ -165,47 +150,18 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
         setFormData({...formData, details: newDetails});
     };
 
-    const addCategory = () => {
-        setFormData({
-            ...formData,
-            categories: [...formData.categories, {
-                category_id: '',
-                total_amount: 0,
-                description: ''
-            }]
-        });
-    };
-
-    const updateCategory = (index, field, value) => {
-        const newCategories = [...formData.categories];
-        newCategories[index][field] = value;
-        setFormData({...formData, categories: newCategories});
-    };
-
-    const removeCategory = (index) => {
-        const newCategories = formData.categories.filter((_, i) => i !== index);
-        setFormData({...formData, categories: newCategories});
-    };
-
     const getItemOptions = (itemType) => {
         switch(itemType) {
             case 'service': return services?.filter(s => s.status) || [];
             case 'medicine': return medicines?.filter(m => m.status) || [];
-            case 'action': return actions?.filter(a => a.status) || [];
             default: return [];
         }
     };
 
     const calculateTotal = () => {
-        const detailsTotal = formData.details.reduce((sum, detail) => {
+        return formData.details.reduce((sum, detail) => {
             return sum + (detail.quantity * detail.unit_price);
         }, 0);
-        
-        const categoriesTotal = formData.categories.reduce((sum, category) => {
-            return sum + Number(category.total_amount || 0);
-        }, 0);
-        
-        return detailsTotal + categoriesTotal;
     };
 
     const handleSubmit = async (e) => {
@@ -216,13 +172,8 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
             return;
         }
         
-        if (!formData.tanggal_jkk) {
-            Swal.fire('Error!', 'Please select JKK date', 'error');
-            return;
-        }
-        
-        if (formData.details.length === 0 && formData.categories.length === 0) {
-            Swal.fire('Error!', 'Please add at least one item or category', 'error');
+        if (formData.details.length === 0) {
+            Swal.fire('Error!', 'Please add at least one item', 'error');
             return;
         }
         
@@ -405,7 +356,6 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice No</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Medical Record</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">JKK Date</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Amount</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
@@ -418,7 +368,6 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
                                     <td className="px-6 py-4 whitespace-nowrap font-medium">{invoice.invoice_number}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{invoice.medical_record?.patient?.nama_pasien}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{invoice.medical_record?.no_rawat_medis}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{invoice.tanggal_jkk ? new Date(invoice.tanggal_jkk).toLocaleDateString() : '-'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">Rp {Number(invoice.total_amount).toLocaleString()}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(invoice.status)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{new Date(invoice.created_at).toLocaleDateString()}</td>
@@ -433,420 +382,357 @@ export default function Index({ invoices, filters, medicalRecords, categories, s
                                             </button>
                                             
                                             <button
-                                                onClick={() => window.open(`/invoices/${invoice.id}/print`, '_blank')}
+                                                onClick={() => router.get(`/invoices/${invoice.id}/print`)}
                                                 className="text-green-600 hover:text-green-900"
                                                 title="Print Invoice"
                                             >
                                                 <FileText size={16} />
                                             </button>
 
-                                            {/* Admin RS Actions */}
                                             {auth.user.role === 'admin_rs' && (
                                                 <>
                                                     {invoice.status === 'draft' && (
                                                         <>
                                                             <button
                                                                 onClick={() => openEditModal(invoice)}
-                                                                className="text-yellow-600 hover:text-yellow-900"
-                                                                title="Edit"
-                                                            >
-                                                                <Edit size={16} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleSubmitInvoice(invoice)}
-                                                                className="text-blue-600 hover:text-blue-900"
-                                                                title="Submit"
-                                                            >
-                                                                <Check size={16} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => deleteInvoice(invoice.id)}
-                                                                className="text-red-600 hover:text-red-900"
-                                                                title="Delete"
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                </>
-                                            )}
+                                                               className="text-yellow-600 hover:text-yellow-900"
+                                                               title="Edit"
+                                                           >
+                                                               <Edit size={16} />
+                                                           </button>
+                                                           <button
+                                                               onClick={() => handleSubmitInvoice(invoice)}
+                                                               className="text-blue-600 hover:text-blue-900"
+                                                               title="Submit"
+                                                           >
+                                                               <Check size={16} />
+                                                           </button>
+                                                           <button
+                                                               onClick={() => deleteInvoice(invoice.id)}
+                                                               className="text-red-600 hover:text-red-900"
+                                                               title="Delete"
+                                                           >
+                                                               <Trash2 size={16} />
+                                                           </button>
+                                                       </>
+                                                   )}
+                                               </>
+                                           )}
 
-                                            {/* Admin BPJS Actions */}
-                                            {auth.user.role === 'admin_bpjs' && invoice.status === 'submitted' && (
-                                                <>
-                                                    <button
-                                                        onClick={() => openEditModal(invoice)}
-                                                        className="text-yellow-600 hover:text-yellow-900"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleApprove(invoice)}
-                                                        className="text-green-600 hover:text-green-900"
-                                                        title="Approve"
-                                                    >
-                                                        <Check size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleReject(invoice)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                        title="Reject"
-                                                    >
-                                                        <X size={16} />
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                           {auth.user.role === 'admin_bpjs' && invoice.status === 'submitted' && (
+                                               <>
+                                                   <button
+                                                       onClick={() => handleApprove(invoice)}
+                                                       className="text-green-600 hover:text-green-900"
+                                                       title="Approve"
+                                                   >
+                                                       <Check size={16} />
+                                                   </button>
+                                                   <button
+                                                       onClick={() => handleReject(invoice)}
+                                                       className="text-red-600 hover:text-red-900"
+                                                       title="Reject"
+                                                   >
+                                                       <X size={16} />
+                                                   </button>
+                                               </>
+                                           )}
+                                       </div>
+                                   </td>
+                               </tr>
+                           ))}
+                       </tbody>
+                   </table>
+               </div>
 
-                {/* Pagination */}
-                {invoices?.links && (
-                    <div className="mt-4 flex justify-center">
-                        <div className="flex space-x-1">
-                            {invoices.links.map((link, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => router.get(link.url)}
-                                    disabled={!link.url}
-                                    className={`px-3 py-2 text-sm ${
-                                        link.active 
-                                            ? 'bg-blue-500 text-white' 
-                                            : link.url 
-                                                ? 'bg-white text-gray-700 hover:bg-gray-50 border' 
-                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    } rounded`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
-            </div>
+               {/* Pagination */}
+               {invoices?.links && (
+                   <div className="mt-4 flex justify-center">
+                       <div className="flex space-x-1">
+                           {invoices.links.map((link, index) => (
+                               <button
+                                   key={index}
+                                   onClick={() => router.get(link.url)}
+                                   disabled={!link.url}
+                                   className={`px-3 py-2 text-sm ${
+                                       link.active 
+                                           ? 'bg-blue-500 text-white' 
+                                           : link.url 
+                                               ? 'bg-white text-gray-700 hover:bg-gray-50 border' 
+                                               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                   } rounded`}
+                                   dangerouslySetInnerHTML={{ __html: link.label }}
+                               />
+                           ))}
+                       </div>
+                   </div>
+               )}
+           </div>
 
-            {/* Create/Edit Invoice Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[95vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex items-center gap-4 mb-6">
-                                <button
-                                    onClick={() => {
-                                        setShowModal(false);
-                                        setEditingInvoice(null);
-                                        resetForm();
-                                    }}
-                                    className="p-2 hover:bg-gray-100 rounded-lg"
-                                >
-                                    <ArrowLeft size={20} />
-                                </button>
-                                <div>
-                                    <h2 className="text-2xl font-bold text-gray-900">
-                                        {editingInvoice ? 'Edit Invoice' : 'Create Invoice'}
-                                    </h2>
-                                    <p className="text-gray-600">
-                                        {editingInvoice ? 'Edit existing invoice' : 'Create a new invoice for medical services'}
-                                    </p>
-                                </div>
-                            </div>
+           {/* Create/Edit Invoice Modal */}
+           {showModal && (
+               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                   <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+                       <div className="p-6">
+                           <div className="flex items-center gap-4 mb-6">
+                               <button
+                                   onClick={() => {
+                                       setShowModal(false);
+                                       setEditingInvoice(null);
+                                       resetForm();
+                                   }}
+                                   className="p-2 hover:bg-gray-100 rounded-lg"
+                               >
+                                   <ArrowLeft size={20} />
+                               </button>
+                               <div>
+                                   <h2 className="text-2xl font-bold text-gray-900">
+                                       {editingInvoice ? 'Edit Invoice' : 'Create Invoice'}
+                                   </h2>
+                                   <p className="text-gray-600">
+                                       {editingInvoice ? 'Edit existing invoice' : 'Create a new invoice for medical services'}
+                                   </p>
+                               </div>
+                           </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                {/* Basic Information */}
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Invoice Number *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.invoice_number}
-                                                onChange={(e) => setFormData({...formData, invoice_number: e.target.value})}
-                                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                required
-                                                readOnly={editingInvoice}
-                                            />
-                                        </div>
-                                        
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Tanggal JKK *
-                                            </label>
-                                            <input
-                                                type="date"
-                                                value={formData.tanggal_jkk}
-                                                onChange={(e) => setFormData({...formData, tanggal_jkk: e.target.value})}
-                                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                required
-                                            />
-                                        </div>
-                                        
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Search Medical Record *
-                                            </label>
-                                            <div className="relative">
-                                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                                <input
-                                                    type="text"
-                                                    value={patientSearch}
-                                                    onChange={(e) => setPatientSearch(e.target.value)}
-                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                    placeholder="Search by patient name or medical record number..."
-                                                    required
-                                                />
-                                            </div>
-                                            
-                                            {patients.length > 0 && (
-                                                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
-                                                    {medicalRecordOptions.filter(record => 
-                                                        patients.some(patient => patient.id === record.patient_id)
-                                                    ).map((record) => (
-                                                        <div
-                                                            key={record.id}
-                                                            onClick={() => selectMedicalRecord(record)}
-                                                            className="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                                                        >
-                                                            <div className="font-medium text-gray-900">{record.patient?.nama_pasien}</div>
-                                                            <div className="text-sm text-gray-500">
-                                                                Medical Record: {record.no_rawat_medis} | KPJ: {record.patient?.no_kpj}
-                                                            </div>
-                                                            <div className="text-xs text-gray-400">{record.diagnosis}</div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="mt-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Notes
-                                        </label>
-                                        <textarea
-                                            value={formData.notes}
-                                            onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            rows="3"
-                                            placeholder="Additional notes for this invoice..."
-                                        />
-                                    </div>
-                                </div>
+                           <form onSubmit={handleSubmit} className="space-y-6">
+                               {/* Basic Information */}
+                               <div className="bg-gray-50 rounded-lg p-4">
+                                   <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+                                   
+                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                       <div>
+                                           <label className="block text-sm font-medium text-gray-700 mb-2">
+                                               Invoice Number *
+                                           </label>
+                                           <input
+                                               type="text"
+                                               value={formData.invoice_number}
+                                               onChange={(e) => setFormData({...formData, invoice_number: e.target.value})}
+                                               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                               required
+                                               readOnly={editingInvoice}
+                                           />
+                                       </div>
+                                       
+                                       <div>
+                                           <label className="block text-sm font-medium text-gray-700 mb-2">
+                                               Search Medical Record *
+                                           </label>
+                                           <div className="relative">
+                                               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                               <input
+                                                   type="text"
+                                                   value={patientSearch}
+                                                   onChange={(e) => setPatientSearch(e.target.value)}
+                                                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                   placeholder="Search by patient name or medical record number..."
+                                                   required
+                                               />
+                                           </div>
+                                           
+                                           {patients.length > 0 && (
+                                               <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
+                                                   {medicalRecordOptions.filter(record => 
+                                                       patients.some(patient => patient.id === record.patient_id)
+                                                   ).map((record) => (
+                                                       <div
+                                                           key={record.id}
+                                                           onClick={() => selectMedicalRecord(record)}
+                                                           className="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                                       >
+                                                           <div className="font-medium text-gray-900">{record.patient?.nama_pasien}</div>
+                                                           <div className="text-sm text-gray-500">
+                                                               Medical Record: {record.no_rawat_medis} | KPJ: {record.patient?.no_kpj}
+                                                           </div>
+                                                           <div className="text-xs text-gray-400">{record.diagnosis}</div>
+                                                       </div>
+                                                   ))}
+                                               </div>
+                                           )}
+                                       </div>
+                                   </div>
+                                   
+                                   <div className="mt-4">
+                                       <label className="block text-sm font-medium text-gray-700 mb-2">
+                                           Notes
+                                       </label>
+                                       <textarea
+                                           value={formData.notes}
+                                           onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           rows="3"
+                                           placeholder="Additional notes for this invoice..."
+                                       />
+                                   </div>
+                               </div>
 
-                                {/* Invoice Details */}
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Invoice Details (Optional)</h3>
-                                        <button
-                                            type="button"
-                                            onClick={addDetail}
-                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                                        >
-                                            <Plus size={16} />
-                                            Add Item
-                                        </button>
-                                    </div>
-                                    
-                                    {formData.details.map((detail, index) => (
-                                        <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4 p-4 border rounded-lg bg-white">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                                                <input
-                                                    type="number"
-                                                    value={detail.quantity}
-                                                    onChange={(e) => updateDetail(index, 'quantity', Number(e.target.value))}
-                                                    className="w-full border border-gray-300 rounded px-3 py-2"
-                                                    min="1"
-                                                    required
-                                                />
-                                            </div>
-                                            
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
-                                                <input
-                                                    type="number"
-                                                    value={detail.unit_price}
-                                                    onChange={(e) => updateDetail(index, 'unit_price', Number(e.target.value))}
-                                                    className="w-full border border-gray-300 rounded px-3 py-2"
-                                                    min="0"
-                                                    step="0.01"
-                                                    required
-                                                />
-                                            </div>
-                                            
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Subtotal</label>
-                                                <input
-                                                    type="text"
-                                                    value={`Rp ${(detail.quantity * detail.unit_price).toLocaleString()}`}
-                                                    className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
-                                                    readOnly
-                                                />
-                                            </div>
-                                            
-                                            <div className="flex items-end">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeDetail(index)}
-                                                    className="text-red-600 hover:text-red-900 p-2"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                               {/* Invoice Details */}
+                               <div className="bg-gray-50 rounded-lg p-4">
+                                   <div className="flex justify-between items-center mb-4">
+                                       <h3 className="text-lg font-semibold">Invoice Details</h3>
+                                       <button
+                                           type="button"
+                                           onClick={addDetail}
+                                           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                                       >
+                                           <Plus size={16} />
+                                           Add Item
+                                       </button>
+                                   </div>
+                                   
+                                   {formData.details.map((detail, index) => (
+                                       <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4 p-4 border rounded-lg bg-white">
+                                           <div>
+                                               <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                               <select
+                                                   value={detail.item_type}
+                                                   onChange={(e) => updateDetail(index, 'item_type', e.target.value)}
+                                                   className="w-full border border-gray-300 rounded px-3 py-2"
+                                               >
+                                                   <option value="service">Service</option>
+                                                   <option value="medicine">Medicine</option>
+                                               </select>
+                                           </div>
+                                           
+                                           <div>
+                                               <label className="block text-sm font-medium text-gray-700 mb-1">Item</label>
+                                               <select
+                                                   value={detail.item_id}
+                                                   onChange={(e) => updateDetail(index, 'item_id', e.target.value)}
+                                                   className="w-full border border-gray-300 rounded px-3 py-2"
+                                                   required
+                                               >
+                                                   <option value="">Select Item</option>
+                                                   {getItemOptions(detail.item_type).map((item) => (
+                                                       <option key={item.id} value={item.id}>
+                                                           {item.name} ({item.code})
+                                                       </option>
+                                                   ))}
+                                               </select>
+                                           </div>
+                                           
+                                           <div>
+                                               <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                                               <input
+                                                   type="number"
+                                                   value={detail.quantity}
+                                                   onChange={(e) => updateDetail(index, 'quantity', Number(e.target.value))}
+                                                   className="w-full border border-gray-300 rounded px-3 py-2"
+                                                   min="1"
+                                                   required
+                                               />
+                                           </div>
+                                           
+                                           <div>
+                                               <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
+                                               <input
+                                                   type="number"
+                                                   value={detail.unit_price}
+                                                   onChange={(e) => updateDetail(index, 'unit_price', Number(e.target.value))}
+                                                   className="w-full border border-gray-300 rounded px-3 py-2"
+                                                   min="0"
+                                                   step="0.01"
+                                                   required
+                                               />
+                                           </div>
+                                           
+                                           <div>
+                                               <label className="block text-sm font-medium text-gray-700 mb-1">Subtotal</label>
+                                               <input
+                                                   type="text"
+                                                   value={`Rp ${(detail.quantity * detail.unit_price).toLocaleString()}`}
+                                                   className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100"
+                                                   readOnly
+                                               />
+                                           </div>
+                                           
+                                           <div className="flex items-end">
+                                               <button
+                                                   type="button"
+                                                   onClick={() => removeDetail(index)}
+                                                   className="text-red-600 hover:text-red-900 p-2"
+                                               >
+                                                   <Trash2 size={16} />
+                                               </button>
+                                           </div>
+                                       </div>
+                                   ))}
+                               </div>
 
-                                {/* Category-based Billing */}
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-semibold">Category Billing (Optional)</h3>
-                                        <button
-                                            type="button"
-                                            onClick={addCategory}
-                                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                                        >
-                                            <Plus size={16} />
-                                            Add Category
-                                        </button>
-                                    </div>
-                                    
-                                    {formData.categories.map((category, index) => (
-                                        <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg bg-white">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                                <select
-                                                    value={category.category_id}
-                                                    onChange={(e) => updateCategory(index, 'category_id', e.target.value)}
-                                                    className="w-full border border-gray-300 rounded px-3 py-2"
-                                                    required
-                                                >
-                                                    <option value="">Select Category</option>
-                                                    {categories?.map((cat) => (
-                                                        <option key={cat.id} value={cat.id}>
-                                                            {cat.name} ({cat.code})
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount</label>
-                                                <input
-                                                    type="number"
-                                                    value={category.total_amount}
-                                                    onChange={(e) => updateCategory(index, 'total_amount', Number(e.target.value))}
-                                                    className="w-full border border-gray-300 rounded px-3 py-2"
-                                                    min="0"
-                                                    step="0.01"
-                                                    required
-                                                />
-                                            </div>
-                                            
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                                <input
-                                                    type="text"
-                                                    value={category.description}
-                                                    onChange={(e) => updateCategory(index, 'description', e.target.value)}
-                                                    className="w-full border border-gray-300 rounded px-3 py-2"
-                                                    placeholder="Optional description"
-                                                />
-                                            </div>
-                                            
-                                            <div className="flex items-end">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeCategory(index)}
-                                                    className="text-red-600 hover:text-red-900 p-2"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                               {/* Total */}
+                               <div className="bg-blue-50 rounded-lg p-4">
+                                   <div className="flex justify-between items-center text-xl font-bold">
+                                       <span>Total Amount:</span>
+                                       <span>Rp {calculateTotal().toLocaleString()}</span>
+                                   </div>
+                               </div>
 
-                                {/* Total */}
-                                <div className="bg-blue-50 rounded-lg p-4">
-                                    <div className="flex justify-between items-center text-xl font-bold">
-                                        <span>Total Amount:</span>
-                                        <span>Rp {calculateTotal().toLocaleString()}</span>
-                                    </div>
-                                </div>
+                               {/* Actions */}
+                               <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+                                   <button
+                                       type="button"
+                                       onClick={() => {
+                                           setShowModal(false);
+                                           setEditingInvoice(null);
+                                           resetForm();
+                                       }}
+                                       className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                                   >
+                                       Cancel
+                                   </button>
+                                   <button
+                                       type="submit"
+                                       disabled={loading}
+                                       className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50"
+                                   >
+                                       {loading ? (editingInvoice ? 'Updating...' : 'Creating...') : (editingInvoice ? 'Update Invoice' : 'Create Invoice')}
+                                   </button>
+                               </div>
+                           </form>
+                       </div>
+                   </div>
+               </div>
+           )}
 
-                                {/* Actions */}
-                                <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowModal(false);
-                                            setEditingInvoice(null);
-                                            resetForm();
-                                        }}
-                                        className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50"
-                                    >
-                                        {loading ? (editingInvoice ? 'Updating...' : 'Creating...') : (editingInvoice ? 'Update Invoice' : 'Create Invoice')}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Rejection Modal */}
-            {rejectionModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4">Reject Invoice</h2>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium mb-2">Rejection Notes</label>
-                            <textarea
-                                value={rejectionNotes}
-                                onChange={(e) => setRejectionNotes(e.target.value)}
-                                className="w-full border rounded px-3 py-2"
-                                rows="4"
-                                placeholder="Please provide reason for rejection..."
-                                required
-                            />
-                        </div>
-                        <div className="flex justify-end space-x-2">
-                            <button
-                                onClick={() => {
-                                    setRejectionModal(false);
-                                    setRejectionNotes('');
-                                    setSelectedInvoice(null);
-                                }}
-                                className="px-4 py-2 text-gray-600 border rounded"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={submitRejection}
-                                className="px-4 py-2 bg-red-500 text-white rounded"
-                            >
-                                Reject Invoice
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </>
-    );
+           {/* Rejection Modal */}
+           {rejectionModal && (
+               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                   <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                       <h2 className="text-xl font-bold mb-4">Reject Invoice</h2>
+                       <div className="mb-4">
+                           <label className="block text-sm font-medium mb-2">Rejection Notes</label>
+                           <textarea
+                               value={rejectionNotes}
+                               onChange={(e) => setRejectionNotes(e.target.value)}
+                               className="w-full border rounded px-3 py-2"
+                               rows="4"
+                               placeholder="Please provide reason for rejection..."
+                               required
+                           />
+                       </div>
+                       <div className="flex justify-end space-x-2">
+                           <button
+                               onClick={() => {
+                                   setRejectionModal(false);
+                                   setRejectionNotes('');
+                                   setSelectedInvoice(null);
+                               }}
+                               className="px-4 py-2 text-gray-600 border rounded"
+                           >
+                               Cancel
+                           </button>
+                           <button
+                               onClick={submitRejection}
+                               className="px-4 py-2 bg-red-500 text-white rounded"
+                           >
+                               Reject Invoice
+                           </button>
+                       </div>
+                   </div>
+               </div>
+           )}
+       </>
+   );
 }
 Index.layout = (page) => <Layout children={page} />;

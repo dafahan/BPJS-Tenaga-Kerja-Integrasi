@@ -8,7 +8,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\MedicineController;
-use App\Http\Controllers\ActionController;
 
 // Patient Management Controllers
 use App\Http\Controllers\PatientController;
@@ -65,14 +64,6 @@ Route::middleware(['auth', RoleMiddleware::class.':admin_rs'])->group(function (
         Route::delete('/{medicine}', [MedicineController::class, 'destroy'])->name('destroy');
     });
     
-    // Master Data - Actions
-    Route::prefix('actions')->name('actions.')->group(function () {
-        Route::get('/', [ActionController::class, 'index'])->name('index');
-        Route::post('/', [ActionController::class, 'store'])->name('store');
-        Route::get('/{action}', [ActionController::class, 'show'])->name('show');
-        Route::put('/{action}', [ActionController::class, 'update'])->name('update');
-        Route::delete('/{action}', [ActionController::class, 'destroy'])->name('destroy');
-    });
     
     // Patient Management
     Route::prefix('patients')->name('patients.')->group(function () {

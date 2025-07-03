@@ -11,7 +11,7 @@ A comprehensive billing management system for hospitals and BPJS (Indonesian hea
   - Categories for medical services
   - Medical services with pricing
   - Medicine inventory management
-  - Medical actions/procedures
+  - Medical procedures
 - **Invoice Creation**: Create invoices with detailed items or category-based billing
 - **Invoice Submission**: Submit invoices to BPJS for approval
 
@@ -124,11 +124,10 @@ After seeding, you can login with:
 - `categories` - Service categories
 - `services` - Medical services with pricing
 - `medicines` - Medicine inventory
-- `actions` - Medical procedures/actions
 
 ### Billing Tables
 - `invoices` - Main invoice records with JKK dates
-- `invoice_details` - Detailed invoice items (services, medicines, actions)
+- `invoice_details` - Detailed invoice items (services, medicines)
 - `invoice_categories` - Category-based billing
 
 ## 🔐 User Roles
@@ -136,7 +135,7 @@ After seeding, you can login with:
 ### Admin Rumah Sakit (Hospital Admin)
 - Manage patients and medical records
 - Create and edit invoices
-- Manage master data (categories, services, medicines, actions)
+- Manage master data (categories, services, medicines)
 - Submit invoices to BPJS
 - Generate reports
 
@@ -163,7 +162,7 @@ After seeding, you can login with:
 - Critical for BPJS claim processing
 
 ### Flexible Invoice Creation
-- **Item-based**: Add individual services, medicines, and actions
+- **Item-based**: Add individual services,and medicines
 - **Category-based**: Bulk billing by service categories
 - **Mixed**: Combine both approaches in single invoice
 

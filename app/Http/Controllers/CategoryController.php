@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Service;
 use App\Models\Medicine;
-use App\Models\Action;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,8 +12,8 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::with(['services', 'actions'])
-            ->withCount(['services', 'actions'])
+        $categories = Category::with(['services'])
+            ->withCount(['services'])
             ->orderBy('name')
             ->get();
 
@@ -38,7 +37,7 @@ class CategoryController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Category created successfully',
-                'category' => $category->load(['services', 'actions'])
+                'category' => $category->load(['services'])
             ]);
         }
 
@@ -47,7 +46,7 @@ class CategoryController extends Controller
 
     public function show(Category $category)
     {
-        $category->load(['services', 'actions']);
+        $category->load(['services']);
         
         return response()->json($category);
     }
@@ -67,7 +66,7 @@ class CategoryController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Category updated successfully',
-                'category' => $category->load(['services', 'actions'])
+                'category' => $category->load(['services'])
             ]);
         }
 
@@ -102,11 +101,9 @@ class CategoryController extends Controller
     public function getItems(Category $category)
     {
         $services = $category->services()->active()->get();
-        $actions = $category->actions()->active()->get();
 
         return response()->json([
             'services' => $services,
-            'actions' => $actions
         ]);
     }
 }

@@ -30,10 +30,6 @@ class Category extends Model
         return $this->hasMany(Service::class);
     }
 
-    public function actions()
-    {
-        return $this->hasMany(Action::class);
-    }
 
     public function invoiceCategories()
     {

@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\Category;
 use App\Models\Service;
 use App\Models\Medicine;
-use App\Models\Action;
 use App\Models\Patient;
 
 class DatabaseSeeder extends Seeder
@@ -79,33 +78,6 @@ class DatabaseSeeder extends Seeder
             'status' => true
         ]);
 
-        // Create Actions
-        Action::create([
-            'category_id' => $ugdCategory->id,
-            'name' => 'Tindakan Jahit Luka',
-            'code' => 'ACT001',
-            'tarif' => 100000,
-            'description' => 'Tindakan penjahitan luka',
-            'status' => true
-        ]);
-
-        Action::create([
-            'category_id' => $ugdCategory->id,
-            'name' => 'Pemasangan Infus',
-            'code' => 'ACT002',
-            'tarif' => 50000,
-            'description' => 'Pemasangan infus',
-            'status' => true
-        ]);
-
-        Action::create([
-            'category_id' => $rawatJalanCategory->id,
-            'name' => 'Pemeriksaan Lab Darah',
-            'code' => 'ACT003',
-            'tarif' => 75000,
-            'description' => 'Pemeriksaan laboratorium darah lengkap',
-            'status' => true
-        ]);
 
         // Create Medicines
         Medicine::create([

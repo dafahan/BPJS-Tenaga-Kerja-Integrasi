@@ -52,7 +52,6 @@ trait HandleAjaxRequests
             'categories' => '/categories',
             'services' => '/services',
             'medicines' => '/medicines',
-            'actions' => '/actions',
             'patients' => '/patients',
             'medical-records' => '/medical-records',
             'invoices' => '/invoices',

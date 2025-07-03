@@ -56,7 +56,6 @@ class InvoiceDetail extends Model
         $types = [
             'service' => 'Layanan',
             'medicine' => 'Obat',
-            'action' => 'Tindakan'
         ];
 
         return $types[$this->item_type] ?? $this->item_type;

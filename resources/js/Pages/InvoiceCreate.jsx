@@ -5,7 +5,7 @@ import Layout from '@/js/Layouts/Layout';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
-export default function InvoiceCreate({ medicalRecords, categories, services, medicines, actions }) {
+export default function InvoiceCreate({ medicalRecords, categories, services, medicines }) {
     const [loading, setLoading] = useState(false);
     const [patients, setPatients] = useState([]);
     const [patientSearch, setPatientSearch] = useState('');
@@ -89,10 +89,7 @@ export default function InvoiceCreate({ medicalRecords, categories, services, me
             } else if (itemType === 'medicine') {
                 const medicine = medicines.find(m => m.id == value);
                 price = medicine?.price || 0;
-            } else if (itemType === 'action') {
-                const action = actions.find(a => a.id == value);
-                price = action?.tarif || 0;
-            }
+            } 
             
             newDetails[index].unit_price = price;
         }
@@ -131,7 +128,6 @@ export default function InvoiceCreate({ medicalRecords, categories, services, me
         switch(itemType) {
             case 'service': return services.filter(s => s.status);
             case 'medicine': return medicines.filter(m => m.status);
-            case 'action': return actions.filter(a => a.status);
             default: return [];
         }
     };

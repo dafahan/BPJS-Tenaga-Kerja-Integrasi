@@ -105,7 +105,6 @@ export default function CategoriesIndex({ categories }) {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Services</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                             </tr>
@@ -116,7 +115,6 @@ export default function CategoriesIndex({ categories }) {
                                     <td className="px-6 py-4 whitespace-nowrap">{category.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{category.code}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{category.services_count}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{category.actions_count}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 py-1 text-xs rounded-full ${
                                             category.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'

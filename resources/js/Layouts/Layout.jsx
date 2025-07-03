@@ -70,7 +70,6 @@ const isActive = (path) => {
         { name: 'Categories', path: '/categories', icon: <FaHospital />, roles: ['admin_rs'] },
         { name: 'Services', path: '/services', icon: <FaStethoscope />, roles: ['admin_rs'] },
         { name: 'Medicines', path: '/medicines', icon: <FaPills />, roles: ['admin_rs'] },
-        { name: 'Actions', path: '/actions', icon: <FaTasks />, roles: ['admin_rs'] },
       ]
     },
     {
@@ -235,10 +234,10 @@ const isActive = (path) => {
           lg:translate-x-0
         `}>
           {/* Logo Section */}
-          <div className="flex items-center justify-between h-16 lg:h-20 border-b px-4 bg-gradient-to-r from-blue-600 to-blue-700">
+          <div className="flex items-center justify-between h-24 lg:h-32 border-b px-4 bg-gradient-to-r from-blue-600 to-blue-700">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <FaHospital className="w-6 h-6 text-blue-600" />
+              <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center">
+                <img src="/logo.png" alt="" className="w-24 h-24 object-contain" />
               </div>
               <div className="hidden lg:block text-white">
                 <div className="text-sm font-bold">BPJS Billing</div>
