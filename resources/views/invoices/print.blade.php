@@ -372,7 +372,7 @@
                <tr>
                    <td>{{ $categoryName }}</td>
                    <td class="number">IDR {{ number_format($total, 2) }}</td>
-                   <td class="number">{{ $invoice->status === 'approved' ? '$ ' . number_format($total, 2) : '-' }}</td>
+                   <td class="number">{{ $invoice->status === 'approved' ? 'IDR ' . number_format($total, 2) : '-' }}</td>
                </tr>
                @endforeach
            </tbody>
