@@ -1,6 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { User, Lock, Save, Eye, EyeOff, Shield, Cog } from 'lucide-react';
+import { User, Lock, Save, Eye, EyeOff, Shield, Cog, Mail, ExternalLink, MessageCircle } from 'lucide-react';
 import Layout from '@/js/Layouts/Layout';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -87,6 +87,7 @@ export default function Settings({ user }) {
     const tabs = [
         { id: 'profile', name: 'Profile Settings', icon: <User size={16} /> },
         { id: 'password', name: 'Change Password', icon: <Lock size={16} /> },
+        { id: 'support', name: 'Contact Support', icon: <MessageCircle size={16} /> },
     ];
 
     return (
@@ -324,6 +325,144 @@ export default function Settings({ user }) {
                                             </button>
                                         </div>
                                     </form>
+                                </div>
+                            )}
+
+                            {activeTab === 'support' && (
+                                <div>
+                                    <div className="mb-6">
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">Contact Support</h3>
+                                        <p className="text-gray-600">Need help? Get in touch with our support team.</p>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        {/* Contact Cards */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {/* Email Support */}
+                                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                                        <Mail className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-lg font-medium text-gray-900">Email Support</h4>
+                                                        <p className="text-sm text-gray-600">Send us an email</p>
+                                                    </div>
+                                                </div>
+                                                <div className="mb-4">
+                                                    <p className="text-gray-700 mb-2">
+                                                        Have a question or need assistance? Contact our support team directly via email.
+                                                    </p>
+                                                    <div className="flex items-center gap-2 text-blue-600">
+                                                        <Mail size={16} />
+                                                        <span className="font-medium">hello@dafahan.dev</span>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href="mailto:hello@dafahan.dev"
+                                                    className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                                                >
+                                                    <Mail size={16} />
+                                                    Send Email
+                                                </a>
+                                            </div>
+
+                                            {/* Website Support */}
+                                            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                                        <ExternalLink className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-lg font-medium text-gray-900">Visit Our Website</h4>
+                                                        <p className="text-sm text-gray-600">Browse our resources</p>
+                                                    </div>
+                                                </div>
+                                                <div className="mb-4">
+                                                    <p className="text-gray-700 mb-2">
+                                                        Visit our website for more information, documentation, and additional resources.
+                                                    </p>
+                                                    <div className="flex items-center gap-2 text-green-600">
+                                                        <ExternalLink size={16} />
+                                                        <span className="font-medium">dafahan.dev</span>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href="https://dafahan.dev"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                                                >
+                                                    <ExternalLink size={16} />
+                                                    Visit Website
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        {/* Support Guidelines */}
+                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                                            <h4 className="text-lg font-medium text-gray-900 mb-4">Support Guidelines</h4>
+                                            <div className="space-y-3">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                        <span className="text-blue-600 text-sm font-medium">1</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-700">
+                                                            <strong>Be Specific:</strong> Include detailed information about your issue, including error messages and steps to reproduce the problem.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                        <span className="text-blue-600 text-sm font-medium">2</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-700">
+                                                            <strong>Include Context:</strong> Provide information about your role, the feature you're using, and what you were trying to accomplish.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                        <span className="text-blue-600 text-sm font-medium">3</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-700">
+                                                            <strong>Response Time:</strong> We typically respond within 24-48 hours during business days.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Quick Actions */}
+                                        {/* <div className="bg-white border border-gray-200 rounded-lg p-6">
+                                            <h4 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <a
+                                                    href="mailto:hello@dafahan.dev?subject=Technical Support Request"
+                                                    className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <Shield className="w-5 h-5 text-blue-500" />
+                                                    <div>
+                                                        <div className="font-medium text-gray-900">Technical Support</div>
+                                                        <div className="text-sm text-gray-600">Report bugs or technical issues</div>
+                                                        </div>
+                                                </a>
+                                                <a
+                                                    href="mailto:hello@dafahan.dev?subject=Feature Request"
+                                                    className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <MessageCircle className="w-5 h-5 text-green-500" />
+                                                    <div>
+                                                        <div className="font-medium text-gray-900">Feature Request</div>
+                                                        <div className="text-sm text-gray-600">Suggest new features or improvements</div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div> */}
+                                    </div>
                                 </div>
                             )}
                         </div>

@@ -63,13 +63,13 @@ const isActive = (path) => {
     {
       name: 'Master Data',
       icon: <FaDatabase />,
-      roles: ['admin_rs'],
+      roles: ['*'],
       type: 'group',
       key: 'master_data',
       children: [
-        { name: 'Categories', path: '/categories', icon: <FaHospital />, roles: ['admin_rs'] },
-        { name: 'Services', path: '/services', icon: <FaStethoscope />, roles: ['admin_rs'] },
-        { name: 'Medicines', path: '/medicines', icon: <FaPills />, roles: ['admin_rs'] },
+        { name: 'Categories', path: '/categories', icon: <FaHospital />, roles: ['*'] },
+        { name: 'Services', path: '/services', icon: <FaStethoscope />, roles: ['*'] },
+        { name: 'Medicines', path: '/medicines', icon: <FaPills />, roles: ['*'] },
       ]
     },
     {

@@ -385,7 +385,8 @@ export default function Index({ invoices, filters, medicalRecords, services, med
                                             </button>
                                             
                                             <button
-                                                onClick={() => router.get(`/invoices/${invoice.id}/print`)}
+                                             onClick={() => window.open(`/invoices/${invoice.id}/print`, '_blank')}
+                                       
                                                 className="text-green-600 hover:text-green-900"
                                                 title="Print Invoice"
                                             >

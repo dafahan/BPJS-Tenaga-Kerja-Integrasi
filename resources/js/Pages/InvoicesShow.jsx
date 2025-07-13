@@ -2,7 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { ArrowLeft, FileText, User, Calendar, Package, Stethoscope, Pill } from 'lucide-react';
 import Layout from '@/js/Layouts/Layout';
 
-export default function Show({ invoice }) {
+export default function Show({ invoice ,categoryTotals = {}}) {
    const formatDate = (date) => {
        if (!date) return '-';
        return new Date(date).toLocaleDateString('id-ID', {
@@ -51,32 +51,10 @@ export default function Show({ invoice }) {
        return invoice.invoice_details?.reduce((sum, detail) => sum + Number(detail.subtotal), 0) || 0;
    };
 
-   // Group items by category for summary
-   const getCategorySummary = () => {
-       const categoryTotals = {};
-       
-       invoice.invoice_details?.forEach(detail => {
-           let categoryName = '';
-           if (detail.item_type === 'service') {
-               // You might want to get the actual category name from the service
-               categoryName = 'JASA DOKTER'; // Default or get from service.category.name
-           } else if (detail.item_type === 'medicine') {
-               categoryName = 'OBAT';
-           } else {
-               categoryName = detail.item_type.toUpperCase();
-           }
-           
-           if (!categoryTotals[categoryName]) {
-               categoryTotals[categoryName] = 0;
-           }
-           categoryTotals[categoryName] += Number(detail.subtotal);
-       });
-       
-       return categoryTotals;
-   };
 
-   const categorySummary = getCategorySummary();
 
+    const categorySummary = categoryTotals;
+    
    return (
        <>
            <Head title={`Invoice ${invoice.invoice_number}`} />
@@ -223,30 +201,36 @@ export default function Show({ invoice }) {
                            </div>
                        )}
 
-                       {/* Category Summary */}
-                       {Object.keys(categorySummary).length > 0 && (
-                           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                               <h2 className="text-lg font-semibold mb-4">Category Summary</h2>
-                               
-                               <div className="space-y-3">
-                                   <div className="grid grid-cols-3 gap-4 text-xs font-medium text-gray-500 uppercase border-b pb-2">
-                                       <span>KATEGORI</span>
-                                       <span className="text-right">DIAJUKAN</span>
-                                       <span className="text-right">DISETUJUI</span>
-                                   </div>
-                                   
-                                   {Object.entries(categorySummary).map(([categoryName, total], index) => (
-                                       <div key={index} className="grid grid-cols-3 gap-4 py-2 border-b border-gray-100">
-                                           <span className="font-medium text-gray-900">{categoryName}</span>
-                                           <span className="text-right text-gray-900">IDR {total.toFixed(2)}</span>
-                                           <span className="text-right text-gray-900">
-                                               {invoice.status === 'approved' ? `IDR ${total.toFixed(2)}` : '-'}
-                                           </span>
-                                       </div>
-                                   ))}
-                               </div>
-                           </div>
-                       )}
+{/* Category Summary */}
+{Object.keys(categoryTotals).length > 0 && (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold mb-4">Pengelompokan Kategori</h2>
+
+        <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b">
+                    <tr>
+                        <th className="text-left px-4 py-2">KATEGORI</th>
+                        <th className="text-right px-4 py-2">DIAJUKAN</th>
+                        <th className="text-right px-4 py-2">DISETUJUI</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y">
+                    {Object.entries(categoryTotals).map(([categoryName, total], index) => (
+                        <tr key={index}>
+                            <td className="px-4 py-2 text-gray-900">{categoryName}</td>
+                            <td className="px-4 py-2 text-right text-gray-900">IDR {Number(total).toFixed(2)}</td>
+                            <td className="px-4 py-2 text-right text-gray-900">
+                                {invoice.status === 'approved' ? `IDR ${Number(total).toFixed(2)}` : '-'}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </div>
+)}
+
 
                        {/* Notes */}
                        {invoice.notes && (

@@ -178,20 +178,43 @@ class InvoiceController extends Controller
         return redirect()->back()->with('success', 'Invoice updated successfully');
     }
 
-    public function show(Invoice $invoice)
-    {
-        $invoice->load([
-            'medicalRecord.patient',
-            'invoiceDetails',
-            'invoiceCategories',
-            'creator',
-            'approver'
-        ]);
+public function show(Invoice $invoice)
+{
+    $invoice->load([
+        'medicalRecord.patient',
+        'invoiceDetails',
+        'invoiceCategories',
+        'creator',
+        'approver'
+    ]);
 
-        return Inertia::render('InvoicesShow', [
-            'invoice' => $invoice
-        ]);
+    $categoryTotals = [];
+
+    foreach ($invoice->invoiceDetails as $detail) {
+        $categoryName = '';
+
+        if ($detail->item_type === 'service') {
+            $service = \App\Models\Service::find($detail->item_id);
+            $categoryName = $service && $service->category ? $service->category->name : 'JASA DOKTER';
+        } elseif ($detail->item_type === 'medicine') {
+            $categoryName = 'OBAT';
+        } else {
+            $categoryName = strtoupper($detail->item_type);
+        }
+
+        if (!isset($categoryTotals[$categoryName])) {
+            $categoryTotals[$categoryName] = 0;
+        }
+
+        $categoryTotals[$categoryName] += $detail->subtotal;
     }
+
+    return Inertia::render('InvoicesShow', [
+        'invoice' => $invoice,
+        'categoryTotals' => $categoryTotals
+    ]);
+}
+
 
     public function edit(Invoice $invoice)
     {

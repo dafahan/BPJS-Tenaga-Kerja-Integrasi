@@ -37,33 +37,6 @@ Route::middleware(['auth'])->group(function () {
 // Admin RS Only Routes
 Route::middleware(['auth', RoleMiddleware::class.':admin_rs'])->group(function () {
     
-    // Master Data - Categories
-    Route::prefix('categories')->name('categories.')->group(function () {
-        Route::get('/', [CategoryController::class, 'index'])->name('index');
-        Route::post('/', [CategoryController::class, 'store'])->name('store');
-        Route::get('/{category}', [CategoryController::class, 'show'])->name('show');
-        Route::put('/{category}', [CategoryController::class, 'update'])->name('update');
-        Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
-    });
-    
-    // Master Data - Services
-    Route::prefix('services')->name('services.')->group(function () {
-        Route::get('/', [ServiceController::class, 'index'])->name('index');
-        Route::post('/', [ServiceController::class, 'store'])->name('store');
-        Route::get('/{service}', [ServiceController::class, 'show'])->name('show');
-        Route::put('/{service}', [ServiceController::class, 'update'])->name('update');
-        Route::delete('/{service}', [ServiceController::class, 'destroy'])->name('destroy');
-    });
-    
-    // Master Data - Medicines
-    Route::prefix('medicines')->name('medicines.')->group(function () {
-        Route::get('/', [MedicineController::class, 'index'])->name('index');
-        Route::post('/', [MedicineController::class, 'store'])->name('store');
-        Route::get('/{medicine}', [MedicineController::class, 'show'])->name('show');
-        Route::put('/{medicine}', [MedicineController::class, 'update'])->name('update');
-        Route::delete('/{medicine}', [MedicineController::class, 'destroy'])->name('destroy');
-    });
-    
     
     // Patient Management
     Route::prefix('patients')->name('patients.')->group(function () {
@@ -106,6 +79,33 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{invoice}/approve', [InvoiceController::class, 'approve'])->middleware(RoleMiddleware::class.':admin_bpjs')->name('approve');
         Route::post('/{invoice}/reject', [InvoiceController::class, 'reject'])->middleware(RoleMiddleware::class.':admin_bpjs')->name('reject');
     });
+        // Master Data - Categories
+    Route::prefix('categories')->name('categories.')->group(function () {
+        Route::get('/', [CategoryController::class, 'index'])->name('index');
+        Route::post('/', [CategoryController::class, 'store'])->name('store');
+        Route::get('/{category}', [CategoryController::class, 'show'])->name('show');
+        Route::put('/{category}', [CategoryController::class, 'update'])->name('update');
+        Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
+    });
+    
+    // Master Data - Services
+    Route::prefix('services')->name('services.')->group(function () {
+        Route::get('/', [ServiceController::class, 'index'])->name('index');
+        Route::post('/', [ServiceController::class, 'store'])->name('store');
+        Route::get('/{service}', [ServiceController::class, 'show'])->name('show');
+        Route::put('/{service}', [ServiceController::class, 'update'])->name('update');
+        Route::delete('/{service}', [ServiceController::class, 'destroy'])->name('destroy');
+    });
+    
+    // Master Data - Medicines
+    Route::prefix('medicines')->name('medicines.')->group(function () {
+        Route::get('/', [MedicineController::class, 'index'])->name('index');
+        Route::post('/', [MedicineController::class, 'store'])->name('store');
+        Route::get('/{medicine}', [MedicineController::class, 'show'])->name('show');
+        Route::put('/{medicine}', [MedicineController::class, 'update'])->name('update');
+        Route::delete('/{medicine}', [MedicineController::class, 'destroy'])->name('destroy');
+    });
+    
 });
 
 // Reports Routes (Shared for both roles with different access)
